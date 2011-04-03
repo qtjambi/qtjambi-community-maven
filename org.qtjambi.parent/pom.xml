@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>root</artifactId>
+		<groupId>org.qtjambi</groupId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../org.qtjambi.root/pom.xml</relativePath>
+	</parent>
+	<groupId>org.qtjambi</groupId>
+	<artifactId>parent</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>${project.groupId}.${project.artifactId}</name>
+	<developers>
+		<developer>
+			<id>dmiles</id>
+			<name>Darryl L. Miles</name>
+			<email>darryl.miles@darrylmiles.org</email>
+			<organizationUrl>http://www.qt-jambi.org/</organizationUrl>
+			<timezone>GMT0BST1</timezone>
+		</developer>
+	</developers>
+	<repositories>
+		<repository>
+			<id>qtjambi.org.groups.public</id>
+			<name>QtJambi Maven Repository - Public</name>
+			<url>http://repository.qt-jambi.org/nexus/content/groups/public/</url>
+		</repository>
+		<repository>
+			<id>qtjambi.org.groups.releases</id>
+			<name>QtJambi Maven Repository - Releases</name>
+			<url>http://repository.qt-jambi.org/nexus/content/groups/releases/</url>
+		</repository>
+		<repository>
+			<id>qtjambi.org.groups.snashots</id>
+			<name>QtJambi Maven Repository - Snapshots</name>
+			<url>http://repository.qt-jambi.org/nexus/content/groups/snapshots/</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>qtjambi.org.groups.public</id>
+			<name>QtJambi Maven Repository - Public</name>
+			<url>http://repository.qt-jambi.org/nexus/content/groups/public/</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>qtjambi.org.groups.releases</id>
+			<name>QtJambi Maven Repository - Releases</name>
+			<url>http://repository.qt-jambi.org/nexus/content/groups/releases/</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>qtjambi.org.groups.snashots</id>
+			<name>QtJambi Maven Repository - Snapshots</name>
+			<url>http://repository.qt-jambi.org/nexus/content/groups/snapshots/</url>
+		</pluginRepository>
+	</pluginRepositories>
+</project>
