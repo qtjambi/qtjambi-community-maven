@@ -202,6 +202,20 @@ public abstract class Utils {
 	 * @return
 	 */
 	public static boolean deleteRecursive(File dir) {
+		// PARANOID CHECK
+		String pathAsString = dir.getAbsolutePath();
+		if(pathAsString.length() == 0)
+			return false;
+		if(pathAsString.startsWith(File.separator) == false)
+			throw new RuntimeException("deleteRecursive(): " + dir.getAbsolutePath());
+		{
+			int i, j;
+			i = pathAsString.indexOf(File.separator);
+			j = pathAsString.lastIndexOf(File.separator);
+			if(i == j || (j - i) < 2)
+				throw new RuntimeException("deleteRecursive(): " + dir.getAbsolutePath());
+		}
+		// PARANOID CHECK
 		boolean bf = true;
 		File[] fileA = dir.listFiles();
 		for(File f : fileA) {
