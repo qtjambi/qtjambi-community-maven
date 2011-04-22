@@ -56,6 +56,7 @@ public class Project {
 			e.printStackTrace();
 			return false;
 		}
+		// FIXME: Record qmake works or not to inhibit the next step or not
 		return true;
 	}
 
@@ -90,7 +91,13 @@ public class Project {
 	public boolean runProjectProgram(String progName) {
 		IEnvironmentResolver environmentResolver = new RuntimeEnvironmentResolver(context.getPlatform());
 
-		String progPath = "release" + File.separator + progName;
+		String progPath = progName;
+		if(context.getPlatform().isWindows(false))
+			progPath = "release" + File.separator + progName;
+		else if(context.getPlatform().isLinux(false))
+			progPath = "." + File.separator + progName;
+		else if(context.getPlatform().isMacosx(false))
+			progPath = "." + File.separator + progName;
 
 		List<String> command = new ArrayList<String>();
 		String commandExe = environmentResolver.resolveCommand(toplevelDir, progPath);
