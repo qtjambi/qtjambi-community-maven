@@ -14,6 +14,7 @@ import org.qtjambi.buildtool.maven.resolvers.MingwEnvironmentResolver;
 import org.qtjambi.buildtool.maven.resolvers.QtEnvironmentResolver;
 import org.qtjambi.buildtool.maven.utils.Utils;
 
+// TODO: Dump available platforms, disambiguate
 public class Arguments {
 	public static final String K_toolchain			= "toolchain";			// gcc, mingw, mingw_w64/mingw-w64, msvc/msvc2010
 	public static final String K_cross_compile		= "cross_compile";
@@ -23,7 +24,7 @@ public class Arguments {
 	public static final String K_qt_makespecs		= "qt.makespecs";
 	public static final String K_msvc_home			= "msvc.home";
 	public static final String K_mingw_home			= "mingw.home";
-	public static final String K_mingw_w64_home 	= "mingw_w64.home";		// prefered
+	public static final String K_mingw_w64_home 	= "mingw_w64.home";		// preferred
 	public static final String K_mingw__w64_home	= "mingw-w64.home";
 	public static final String K_java_home			= "java.home";
 	public static final String K_jre_home			= "jre.home";
@@ -174,6 +175,15 @@ public class Arguments {
 	}
 
 	public void setupResolvers(Platform platform) {
+		DefaultEnvironmentResolver globalEnvironmentResolver = new DefaultEnvironmentResolver(platform);
+		{
+			globalEnvironmentResolver.setPathAppend(pathAppend);
+			globalEnvironmentResolver.setLdLibraryPathAppend(ldLibraryPathAppend);
+			globalEnvironmentResolver.setDyldLibraryPathAppend(dyldLibraryPathAppend);
+			globalEnvironmentResolver.setEnvvarMap(envvarGlobal);
+		}
+		platform.setGlobalEnvironmentResolver(globalEnvironmentResolver);
+
 		MingwEnvironmentResolver mingwEnvironmentResolver = new MingwEnvironmentResolver(platform);
 		if(mingwEnvironmentResolver instanceof DefaultEnvironmentResolver) {	// Globals
 			DefaultEnvironmentResolver defaultEnvironmentResolver = (DefaultEnvironmentResolver) mingwEnvironmentResolver;

@@ -22,15 +22,19 @@ private:
 	QPushButton *qButton;
 	QTimer *timer;
 	int tick_count;
+	bool done;
 
 	time_t starttime;
 	time_t endtime;
 
 	void init();
 	int update_button(QPushButton &button);
+
 public:
 	MyApplication(int &argc, char **argv);
 	virtual ~MyApplication();
+
+public slots:
 	void tick();
 	void myQuit();
 };

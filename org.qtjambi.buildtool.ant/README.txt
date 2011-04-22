@@ -5,4 +5,7 @@ Last Sync:
 	Date:   Wed Mar 30 13:23:24 2011 +0200
 
 Steps:
+	Copy $QTJAMBI_SRC/src/java/ant-qtjambi/***/ant-qtjambi.xml src/main/resources/
+	# Then what is left
 	Copy $QTJAMBI_SRC/src/java/ant-qtjambi/*** src/main/java/
+	

@@ -69,13 +69,35 @@ public class RuntimeEnvironmentResolver extends DefaultEnvironmentResolver imple
 
 		if(dyldLibraryPathAppend != null)
 			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
+
+		IEnvironmentResolver environmentResolver;
+
+		environmentResolver = platform.getGlobalEnvironmentResolver();
+		if(environmentResolver != null)
+			environmentResolver.applyEnvironmentVariablesNoParent(envvar);
+
+		// FIXME: Make this toolchain related
+		environmentResolver = platform.getMingwEnvironmentResolver();
+		if(environmentResolver != null)
+			environmentResolver.applyEnvironmentVariablesNoParent(envvar);
+
+		environmentResolver = platform.getQtEnvironmentResolver();
+		if(environmentResolver != null)
+			environmentResolver.applyEnvironmentVariablesNoParent(envvar);
+
+		environmentResolver = platform.getJavaEnvironmentResolver();
+		if(environmentResolver != null)
+			environmentResolver.applyEnvironmentVariablesNoParent(envvar);
 	}
 
-	public String resolveCommand(String command) {
+	public String resolveCommand(File dir, String command) {
 		if(commandMap.containsKey(command))
 			return commandMap.get(command);
-		if(command.indexOf(File.separator) >= 0)
+		if(command.indexOf(File.separator) >= 0) {	// Windows can't execute relative paths must convert to absolute
+			if(dir != null && command.startsWith(File.separator) == false)
+				command = dir.getAbsolutePath() + File.separator + platform.makeExeFilename(command);
 			return command;
+		}
 
 		// Resolve ???
 		String commandPath = platform.makeExeFilename(command);

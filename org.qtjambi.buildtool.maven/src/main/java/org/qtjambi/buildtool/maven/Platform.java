@@ -11,6 +11,7 @@ public class Platform {
 	private String batSuffix;
 	private String shSuffix;
 
+	private IEnvironmentResolver globalEnvironmentResolver;
 	private IEnvironmentResolver gccEnvironmentResolver;
 	private IEnvironmentResolver javaEnvironmentResolver;
 	private IEnvironmentResolver mingwEnvironmentResolver;
@@ -137,6 +138,13 @@ public class Platform {
 	}
 	public String getOsVersion() {
 		return osVersion;
+	}
+
+	public IEnvironmentResolver getGlobalEnvironmentResolver() {
+		return globalEnvironmentResolver;
+	}
+	public void setGlobalEnvironmentResolver(IEnvironmentResolver globalEnvironmentResolver) {
+		this.globalEnvironmentResolver = globalEnvironmentResolver;
 	}
 
 	public IEnvironmentResolver getGccEnvironmentResolver() {

@@ -24,7 +24,7 @@ main(int argc, char *argv[])
 	Q_INIT_RESOURCE(qt_test);
 	int retval = 1;
 
-	if(argc > 0) {
+	if(argc > 1) {
 		const char *v;
 		v = argv[1];
 		printf("argv[1]=%s\n", v);
@@ -34,5 +34,8 @@ main(int argc, char *argv[])
 
 	MyApplication myApp(argc, argv);
 	myApp.setApplicationName("qt_test");
-	return myApp.exec();
+	retval = myApp.exec();
+	printf("exit=%d\n", retval);
+	fflush(stdout);
+	return retval;
 }

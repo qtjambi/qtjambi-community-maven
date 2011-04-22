@@ -22,6 +22,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.qtjambi.buildtool.maven.resolvers.DefaultEnvironmentResolver;
+import org.qtjambi.buildtool.maven.resolvers.RuntimeEnvironmentResolver;
 import org.qtjambi.buildtool.maven.utils.ProcessUtils;
 import org.qtjambi.buildtool.maven.utils.Utils;
 
@@ -40,7 +41,7 @@ public class Project {
 		String qtQmake = "qmake";
 
 		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(qtQmake);
+		String commandExe = environmentResolver.resolveCommand(toplevelDir, qtQmake);
 		command.add(commandExe);
 		//for(Object o : args)
 		//	command.add(o.toString());
@@ -69,7 +70,7 @@ public class Project {
 		String qtQmake = "mingw32-make";
 
 		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(qtQmake);
+		String commandExe = environmentResolver.resolveCommand(toplevelDir, qtQmake);
 		command.add(commandExe);
 		//for(Object o : args)
 		//	command.add(o.toString());
@@ -92,12 +93,12 @@ public class Project {
 	}
 
 	public boolean runProjectProgram(String progName) {
-		IEnvironmentResolver environmentResolver = new DefaultEnvironmentResolver(context.getPlatform());
+		IEnvironmentResolver environmentResolver = new RuntimeEnvironmentResolver(context.getPlatform());
 
 		String progPath = "release" + File.separator + progName;
 
 		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(progPath);
+		String commandExe = environmentResolver.resolveCommand(toplevelDir, progPath);
 		command.add(commandExe);
 		//for(Object o : args)
 		//	command.add(o.toString());

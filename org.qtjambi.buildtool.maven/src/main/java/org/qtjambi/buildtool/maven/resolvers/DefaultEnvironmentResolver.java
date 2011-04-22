@@ -1,5 +1,6 @@
 package org.qtjambi.buildtool.maven.resolvers;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,11 @@ public class DefaultEnvironmentResolver implements IEnvironmentResolver {
 	}
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
+		//super.applyEnvironmentVariables(envvar);
+		applyEnvironmentVariablesNoParent(envvar);
+	}
+
+	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
 		if(envvarMap != null)
 			Utils.applyEnvVarMap(envvar, envvarMap);
 
@@ -37,7 +43,10 @@ public class DefaultEnvironmentResolver implements IEnvironmentResolver {
 			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
 	}
 
-	public String resolveCommand(String command) {
+	public String resolveCommand(File dir, String command) {
+		if(command.indexOf(File.separator) >= 0 && dir != null && command.startsWith(File.separator) == false)
+			command = dir.getAbsolutePath() + File.separator + command;
+
 		return platform.makeExeFilename(command);
 	}
 

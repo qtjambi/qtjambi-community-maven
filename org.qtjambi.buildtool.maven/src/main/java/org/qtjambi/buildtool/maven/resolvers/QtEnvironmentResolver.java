@@ -61,7 +61,10 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
 		super.applyEnvironmentVariables(envvar);
+		applyEnvironmentVariablesNoParent(envvar);
+	}
 
+	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
 		if(envvarMap != null)
 			Utils.applyEnvVarMap(envvar, envvarMap);
 
@@ -78,11 +81,14 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 			envvar.put(K_QMAKESPECS, qmakespecs);
 	}
 
-	public String resolveCommand(String command) {
+	public String resolveCommand(File dir, String command) {
 		if(commandMap.containsKey(command))
 			return commandMap.get(command);
-		if(command.indexOf(File.separator) >= 0)
+		if(command.indexOf(File.separator) >= 0) {	// Windows can't execute relative paths must convert to absolute
+			if(dir != null && command.startsWith(File.separator) == false)
+				command = dir.getAbsolutePath() + File.separator + platform.makeExeFilename(command);
 			return command;
+		}
 
 		String commandPath = command;
 

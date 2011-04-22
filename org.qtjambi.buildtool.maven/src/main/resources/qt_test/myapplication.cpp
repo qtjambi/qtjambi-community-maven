@@ -19,6 +19,7 @@ MyApplication::init()
 {
 	time(&starttime);
 	endtime = starttime + 5;
+	done = false;
 
 	qMainWindow = new QMainWindow();
 
@@ -54,11 +55,12 @@ MyApplication::update_button(QPushButton &button)
 	char buf[1024];
 	int left;
 
-	left = endtime - time(NULL);
-	if(left < 0) {
+	if(done)
 		return 1;
-	} else if(left == 0) {
+	left = endtime - time(NULL);
+	if(left <= 0) {
 		snprintf(buf, sizeof(buf), "done");
+		done = true;
 	} else {
 		snprintf(buf, sizeof(buf), "%d seconds left", left);
 	}

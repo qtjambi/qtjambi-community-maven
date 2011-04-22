@@ -25,7 +25,10 @@ public class GccEnvironmentResolver extends DefaultEnvironmentResolver implement
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
 		super.applyEnvironmentVariables(envvar);
+		applyEnvironmentVariablesNoParent(envvar);
+	}
 
+	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
 		if(envvarMap != null)
 			Utils.applyEnvVarMap(envvar, envvarMap);
 

@@ -26,6 +26,7 @@ import org.qtjambi.buildtool.maven.resolvers.GccEnvironmentResolver;
 import org.qtjambi.buildtool.maven.resolvers.JavaEnvironmentResolver;
 import org.qtjambi.buildtool.maven.resolvers.MingwEnvironmentResolver;
 import org.qtjambi.buildtool.maven.resolvers.MsvcEnvironmentResolver;
+import org.qtjambi.buildtool.maven.utils.Utils;
 
 /**
  * The purpose of this is to allow the maintainers of QtJambi to
@@ -231,7 +232,26 @@ public class DiagnosticMojo extends AbstractMojo {
 
 	}
 
-	private Integer runCheck(Context context, IEnvironmentResolver environmentResolver, String filename, Object[] args) {
+	private void runCheck(Context context, IEnvironmentResolver environmentResolver, String filename, Object[] args) {
+		Map<String,String> env = System.getenv();
+		environmentResolver.applyEnvironmentVariables(env);
+		String pathValue = env.get(DefaultEnvironmentResolver.K_PATH);
+		String[] pathA = Utils.stringArraySplit(pathValue, File.pathSeparator);
+
+		for(String p : pathA) {
+			File dir = new File(p);
+			String thisFilename = environmentResolver.resolveCommand(dir, filename);	// resolve ABS exec 
+			if(dir.exists() && dir.isDirectory()) {
+				Integer exitStatus = runCheckOnce(context, environmentResolver, thisFilename, args);
+				// FIXME: Log this fact
+			} else {
+				// FIXME: Log this fact
+				context.getLog().info(thisFilename + "; PATH element \"" + p + "\"; does not exist");
+			}
+		}
+	}
+
+	private Integer runCheckOnce(Context context, IEnvironmentResolver environmentResolver, String filename, Object[] args) {
 		// FIXME: We should run all commands found in PATH
 		List<String> command = new ArrayList<String>();
 		filename = context.getPlatform().makeExeFilename(filename);
