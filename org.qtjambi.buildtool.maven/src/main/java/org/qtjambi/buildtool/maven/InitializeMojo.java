@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.text.Format;
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.List;
 import java.util.Map;
 
@@ -17,12 +19,12 @@ import org.qtjambi.buildtool.maven.internal.ProcessBuilder;
 
 /**
  * 
- * @phase compile
- * @goal qmake 
+ * @phase initialize
+ * @goal initialize
  * @author Darryl
  *
  */
-public class QmakeMojo extends AbstractMojo {
+public class InitializeMojo extends AbstractMojo {
 	/**
 	 * @parameter
 	 */
@@ -38,101 +40,17 @@ public class QmakeMojo extends AbstractMojo {
 	 */
 	private Map<String,String> environmentVariables;
 
-	/**
-	 * @parameter default-value="${outputDirectory}/src/main/native"
-	 */
-	private String sourceDirectory;
-
-	/**
-	 * @parameter default-value="${outputDirectory}/target/main/native"
-	 */
-	private String outputDirectory;
-
-	/**
-	 * @parameter default-value="true"
-	 */
-	private boolean debug;
-
-	/**
-	 * @parameter default-value="false"
-	 */
-	private boolean optimize;
-
-	/**
-	 * @parameter default-value="false"
-	 */
-	private boolean verbose;
-
-	/**
-	 * @parameter expression="${project.properties}"
-	 */
-	private Map<String,String> projectProperties;
-
 	private boolean initDone;
 
 	private String execSuffix = "";
 	private String K_bin_qmake;		// auto-filled by platform "bin/qmake"
 	private String qmakeVersion;
 
-	// Search sourceDirectory for *.pro files
-
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		init();
-		getLog().info(QmakeMojo.class.getName() + " QMAKE");
-		if(detectQmakeVersion() == false)
-			throw new MojoFailureException("Unable to detect qmake version");
-		getLog().info(QmakeMojo.class.getName() + " QMAKE_VERSION=" + qmakeVersion);
-	}
-
-	private String getProjectProperty(String key) {
-		if(projectProperties == null)
-			return null;
-		Object o = projectProperties.get(key);
-		if(o == null)
-			return null;
-		return o.toString();
-	}
-
-	/**
-	 * 
-	 * @param path "C:\foo;D:\bar"
-	 * @param pathSeparator "\"
-	 * @return new String[] { "C:\foo", "D:\bar" }
-	 */
-	public static String[] stringSplit(final String path, final String pathSeparator) {
-		// FIXME: Move to Util class
-		List<String> list = new ArrayList<String>();
-		int i = 0;
-		int idx;
-		while((idx = path.indexOf(pathSeparator, i)) >= 0) {
-			String s = path.substring(i, idx);
-			list.add(s);
-			idx += pathSeparator.length();
-			i = idx;
-		}
-		return list.toArray(new String[list.size()]);
-	}
-
-	/**
-	 * Removes trailing (and excessive trailing) directory separators.
-	 * @param path
-	 * @return
-	 */
-	private String pathCanonTrailing(String path) {
-		final String fileSeparator = File.separator;
-		final int fileSeparatorLen = fileSeparator.length();
-		while(true) {
-			int len = path.length();
-			if(len >= fileSeparatorLen) {
-				String s = path.substring(len - fileSeparatorLen);
-				if(s.compareTo(fileSeparator) == 0) {
-					path = path.substring(0, len - fileSeparatorLen);
-					continue;		// try again
-				}
-			}
-			break;
-		}
-		return path;
+		getLog().info(InitializeMojo.class.getName() + " QMAKE");
+		detectQmakeVersion();
+		getLog().info(InitializeMojo.class.getName() + " QMAKE_VERSION=" + qmakeVersion);
 	}
 
 	private void init() {
@@ -145,32 +63,25 @@ public class QmakeMojo extends AbstractMojo {
 		if(K_bin_qmake == null)
 			K_bin_qmake = "bin" + File.separator + "qmake" + execSuffix;
 
-		// Set from project.qtDir property
-		String mavenQtdirString = getProjectProperty("project.qtdir");
-		getLog().info("maven:project.qtdir=" + mavenQtdirString);
-		// Set from $QTDIR environment variable
-		String envvarQtdirString = System.getenv("QTDIR");
-		getLog().info("envvar:QTDIR=" + envvarQtdirString);
-		String syspropQtdirString = System.getProperty("QTDIR");
-		getLog().info("sysprop:QTDIR=" + syspropQtdirString);
-		// Check qmake exists on path, if so go with $PATH / system defaults
-		String envvarPathString = System.getenv("PATH");
-		String[] pathSplit = stringSplit(envvarPathString, File.pathSeparator);
-		boolean first = true;
-		for(String p : pathSplit) {
-			if(first) {
-				getLog().debug("PATH=" + p);
-				first = false;
-			} else {
-				getLog().debug("    =" + p);
-			}
-				
-		}
-
 		if(qtDir == null) {
+			// Set from project.qtDir property
+			// Set from $QTDIR environment variable
+			// Check qmake exists on path, if so go with $PATH / system defaults
 		} else {
 			// Remove trailing directory separator
-			qtDir = pathCanonTrailing(qtDir);
+			final String fileSeparator = File.separator;
+			final int fileSeparatorLen = fileSeparator.length();
+			while(true) {
+				int len = qtDir.length();
+				if(len >= fileSeparatorLen) {
+					String s = qtDir.substring(len - fileSeparatorLen, fileSeparatorLen);
+					if(s.compareTo(fileSeparator) == 0) {
+						qtDir = qtDir.substring(0, len - fileSeparatorLen);
+						continue;		// try again
+					}
+				}
+				break;
+			}
 		}
 
 		if(qtDir != null) {		// Check QTDIR exists (if set)
@@ -215,10 +126,9 @@ public class QmakeMojo extends AbstractMojo {
 				if(c == '\r' || c == '\n')
 					break;
 				sb.append(c);
-				idx++;
 			}
 			if(sb.length() > 0)
-				return sb.toString();
+				sb.toString();
 		}
 		return null;
 	}
@@ -235,34 +145,18 @@ public class QmakeMojo extends AbstractMojo {
 		ProcessBuilder processBuilder = new ProcessBuilder(command);
 
 		File directory = null;
-//		for(Object k : getPluginContext().keySet()) {
-//			String kS = k.toString();
-//			Object v = getPluginContext().get(k);
-//			String vS = (String) v.toString();
-//			getLog().info(kS + " => " + vS);
-//		}
-		
-		{
-			String directoryString = getProjectProperty("project.basedir");
-			if(directoryString != null) {
-				directory = new File(directoryString);
-				if(directory.exists() == false) {
-					String msg = String.format("workingDirectory={0} does not exist", directoryString);
-					getLog().warn(msg);
-				} else {
-					String msg = String.format("workingDirectory={0} does not exist", directoryString);
-					getLog().info(msg);
-				}
+		if(getPluginContext().containsKey("basedir")) {
+			String directoryString = (String) getPluginContext().get("basedir");
+			directory = new File(directoryString);
+			if(directory.exists() == false) {
+				String msg = String.format("workingDirectory={0} does not exist", directoryString);
+				getLog().warn(msg);
 			}
 		}
 		if(directory != null)
 			processBuilder.directory(directory);
 
 		Map<String,String> env = processBuilder.environment();
-		if(qtDir != null)
-			env.put("QTDIR", qtDir);
-		if(qtDir != null)
-			env.put("QT_INSTALL_PREFIX", qtDir);
 
 		String newQmakeVersion = null;
 
@@ -337,8 +231,7 @@ public class QmakeMojo extends AbstractMojo {
 		}
 
 		if(exitStatus != null && exitStatus.intValue() == 0) {
-			if(newQmakeVersion != null)
-				qmakeVersion = newQmakeVersion;
+			qmakeVersion = newQmakeVersion;
 			bf = true;
 		}
 		return bf;
