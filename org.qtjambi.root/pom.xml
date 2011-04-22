@@ -2,9 +2,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qtjambi</groupId>
 	<artifactId>root</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>${project.groupId}.${project.artifactId}</name>
+	<version>0.0.1-SNAPSHOT</version>
+	<description>This is the Maven root project</description>
 	<developers>
 		<developer>
 			<id>dmiles</id>
@@ -14,6 +15,26 @@
 			<timezone>GMT0BST1</timezone>
 		</developer>
 	</developers>
+	<licenses>
+		<license>
+			<name>GNU GENERAL PUBLIC LICENSE, Version 2, June 1991</name>
+			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
+		</license>
+		<license>
+			<name>GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007</name>
+			<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
+		</license>
+		<license>
+			<name>GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1, February 1999</name>
+			<url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>
+			<distribution>repo</distribution>
+			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
+		</license>
+	</licenses>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -63,6 +84,20 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	<distributionManagement>
+		<repository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>qtjambi.org.repositories.releases</id>
+			<name>QtJambi Maven Repository - Releases</name>
+			<url>http://repository.qt-jambi.org/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<uniqueVersion>true</uniqueVersion>
+			<id>qtjambi.org.repositories.snapshots</id>
+			<name>QtJambi Maven Repository - Snapshots</name>
+			<url>http://repository.qt-jambi.org/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<version.org.qtjambi.buildtools.ant>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.ant>

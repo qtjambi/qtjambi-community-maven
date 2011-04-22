@@ -8,9 +8,9 @@
 	</parent>
 	<groupId>org.qtjambi</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>${project.groupId}.${project.artifactId}</name>
+	<version>0.0.1-SNAPSHOT</version>
 	<developers>
 		<developer>
 			<id>dmiles</id>
@@ -20,38 +20,48 @@
 			<timezone>GMT0BST1</timezone>
 		</developer>
 	</developers>
+	<licenses>
+		<license>
+			<name>GNU GENERAL PUBLIC LICENSE, Version 2, June 1991</name>
+			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
+		</license>
+		<license>
+			<name>GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007</name>
+			<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
+		</license>
+		<license>
+			<name>GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1, February 1999</name>
+			<url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>
+			<distribution>repo</distribution>
+			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
+		</license>
+	</licenses>
 	<repositories>
 		<repository>
-			<id>qtjambi.org.groups.public</id>
-			<name>QtJambi Maven Repository - Public</name>
-			<url>http://repository.qt-jambi.org/nexus/content/groups/public/</url>
-		</repository>
-		<repository>
-			<id>qtjambi.org.groups.releases</id>
+			<id>qtjambi.org.repositories.releases</id>
 			<name>QtJambi Maven Repository - Releases</name>
-			<url>http://repository.qt-jambi.org/nexus/content/groups/releases/</url>
+			<url>http://repository.qt-jambi.org/nexus/content/repositories/releases</url>
 		</repository>
 		<repository>
-			<id>qtjambi.org.groups.snashots</id>
+			<id>qtjambi.org.repositories.snapshots</id>
 			<name>QtJambi Maven Repository - Snapshots</name>
-			<url>http://repository.qt-jambi.org/nexus/content/groups/snapshots/</url>
+			<url>http://repository.qt-jambi.org/nexus/content/repositories/snapshots</url>
 		</repository>
 	</repositories>
 	<pluginRepositories>
 		<pluginRepository>
-			<id>qtjambi.org.groups.public</id>
-			<name>QtJambi Maven Repository - Public</name>
-			<url>http://repository.qt-jambi.org/nexus/content/groups/public/</url>
+			<id>qtjambi.org.plugin.repositories.releases</id>
+			<name>QtJambi Maven Plugin Repository - Releases</name>
+			<url>http://repository.qt-jambi.org/nexus/content/repositories/releases</url>
 		</pluginRepository>
 		<pluginRepository>
-			<id>qtjambi.org.groups.releases</id>
-			<name>QtJambi Maven Repository - Releases</name>
-			<url>http://repository.qt-jambi.org/nexus/content/groups/releases/</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>qtjambi.org.groups.snashots</id>
-			<name>QtJambi Maven Repository - Snapshots</name>
-			<url>http://repository.qt-jambi.org/nexus/content/groups/snapshots/</url>
+			<id>qtjambi.org.plugin.repositories.snapshots</id>
+			<name>QtJambi Maven Plugin Repository - Snapshots</name>
+			<url>http://repository.qt-jambi.org/nexus/content/repositories/snapshots</url>
 		</pluginRepository>
 	</pluginRepositories>
 </project>
