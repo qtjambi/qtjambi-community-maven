@@ -10,11 +10,14 @@ import org.qtjambi.buildtool.maven.Platform;
 import org.qtjambi.buildtool.maven.utils.Utils;
 
 public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
+	public static final String K_qmake = "qmake";
+
 	public static final String K_QMAKESPECS			= "QMAKESPECS";
 
 	private String home;
 	private Map<String,String> commandMap;
 	private String qmakespecs;
+	private String commandMake;
 
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
@@ -24,6 +27,7 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 	public QtEnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
+		commandMake = K_qmake;
 	}
 
 	public void setHome(String home, boolean autoConfigure) {
@@ -52,6 +56,12 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 					pathAppend = Utils.safeListStringAppend(pathAppend, "<" + dirHomeBin.getAbsolutePath());	// prepend
 				}
 			}
+			// envvarMap
+			//  unset QTDIR
+			//  unset QTINC
+			//  unset QTLIB
+			//  unset QT_IM_MODULE
+			//  unset QT_PLUGIN_PATH
 		}
 	}
 
@@ -106,5 +116,9 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 			}
 		}
 		return commandPath;
+	}
+
+	public String resolveCommandMake() {
+		return commandMake;
 	}
 }

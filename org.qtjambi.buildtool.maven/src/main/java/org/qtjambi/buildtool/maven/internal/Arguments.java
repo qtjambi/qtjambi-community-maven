@@ -9,8 +9,12 @@ import java.util.Properties;
 
 import org.apache.maven.plugin.logging.Log;
 import org.qtjambi.buildtool.maven.Platform;
+import org.qtjambi.buildtool.maven.Toolchain;
 import org.qtjambi.buildtool.maven.resolvers.DefaultEnvironmentResolver;
+import org.qtjambi.buildtool.maven.resolvers.GccEnvironmentResolver;
+import org.qtjambi.buildtool.maven.resolvers.JavaEnvironmentResolver;
 import org.qtjambi.buildtool.maven.resolvers.MingwEnvironmentResolver;
+import org.qtjambi.buildtool.maven.resolvers.MingwW64EnvironmentResolver;
 import org.qtjambi.buildtool.maven.resolvers.QtEnvironmentResolver;
 import org.qtjambi.buildtool.maven.utils.Utils;
 
@@ -61,6 +65,7 @@ public class Arguments {
 	private String crossCompilePrefix;
 	private String qtPlatform;
 	private String qtMakespecs;
+	private Toolchain toolchain;
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
 	private List<String> dyldLibraryPathAppend;
@@ -123,6 +128,19 @@ public class Arguments {
 			}
 		}
 
+		if(toolchain == null) {
+			s = System.getProperty(K_toolchain);
+			if(s != null) {
+				toolchain = Utils.toolchainFromLabel(s);
+				if(toolchain == null) {
+					log.error(K_toolchain + ": is invalid \"" + s + "\"");
+					// FIXME: Immediate failure error!
+				}
+				if(log != null)
+					log.debug(K_toolchain + ": is set \"" + s + "\"");
+			}
+		}
+
 		Map<String,String> tmpMap;
 		tmpMap = filterSystemProperties(K_path_append);
 		for(String v : tmpMap.values())
@@ -172,6 +190,26 @@ public class Arguments {
 		tmpMap = filterSystemProperties(K_envvar_java);
 		for(Map.Entry<String,String> e : tmpMap.entrySet())
 			envvarJava.put(e.getKey(), e.getValue());
+
+		if(toolchain == null) {		// Attempt to auto-detect
+			// If we were provided something, use it
+
+			// If we have a default per platform, use it
+			if(toolchain == null) {
+				if(platform.isLinux(false))
+					toolchain = Toolchain.gcc;
+				if(platform.isWindows(false))
+					toolchain = Toolchain.mingw;
+				if(platform.isMacosx(false))
+					toolchain = Toolchain.gcc;
+			}
+
+			if(toolchain == null) {
+				// FIXME: This is a immediate failure error (we must pick something)
+			}
+			log.warn(K_toolchain + " auto-detect to " + Utils.toolchainToLabel(toolchain));
+		}
+		platform.setToolchain(toolchain);
 	}
 
 	public void setupResolvers(Platform platform) {
@@ -183,7 +221,34 @@ public class Arguments {
 			globalEnvironmentResolver.setEnvvarMap(envvarGlobal);
 		}
 		platform.setGlobalEnvironmentResolver(globalEnvironmentResolver);
+		
+		// JAVA
+		JavaEnvironmentResolver javaEnvironmentResolver = new JavaEnvironmentResolver(platform);
+		if(javaEnvironmentResolver instanceof DefaultEnvironmentResolver) {	// Globals
+			DefaultEnvironmentResolver defaultEnvironmentResolver = (DefaultEnvironmentResolver) javaEnvironmentResolver;
+			defaultEnvironmentResolver.setPathAppend(pathAppend);
+			defaultEnvironmentResolver.setLdLibraryPathAppend(ldLibraryPathAppend);
+			defaultEnvironmentResolver.setDyldLibraryPathAppend(dyldLibraryPathAppend);
+			defaultEnvironmentResolver.setEnvvarMap(envvarGlobal);
+		}
+		javaEnvironmentResolver.setEnvvarMap(envvarJava);
+		// FIXME CHECKME: autoConfigure?
+		platform.setGccEnvironmentResolver(javaEnvironmentResolver);
 
+		// GCC
+		GccEnvironmentResolver gccEnvironmentResolver = new GccEnvironmentResolver(platform);
+		if(gccEnvironmentResolver instanceof DefaultEnvironmentResolver) {	// Globals
+			DefaultEnvironmentResolver defaultEnvironmentResolver = (DefaultEnvironmentResolver) gccEnvironmentResolver;
+			defaultEnvironmentResolver.setPathAppend(pathAppend);
+			defaultEnvironmentResolver.setLdLibraryPathAppend(ldLibraryPathAppend);
+			defaultEnvironmentResolver.setDyldLibraryPathAppend(dyldLibraryPathAppend);
+			defaultEnvironmentResolver.setEnvvarMap(envvarGlobal);
+		}
+		gccEnvironmentResolver.setEnvvarMap(envvarGcc);
+		gccEnvironmentResolver.autoConfigure();
+		platform.setGccEnvironmentResolver(gccEnvironmentResolver);
+
+		// MINGW
 		MingwEnvironmentResolver mingwEnvironmentResolver = new MingwEnvironmentResolver(platform);
 		if(mingwEnvironmentResolver instanceof DefaultEnvironmentResolver) {	// Globals
 			DefaultEnvironmentResolver defaultEnvironmentResolver = (DefaultEnvironmentResolver) mingwEnvironmentResolver;
@@ -197,6 +262,21 @@ public class Arguments {
 			mingwEnvironmentResolver.setHome(mingwHome, true);
 		platform.setMingwEnvironmentResolver(mingwEnvironmentResolver);
 
+		// MINGW-W64
+		MingwW64EnvironmentResolver mingwW64EnvironmentResolver = new MingwW64EnvironmentResolver(platform);
+		if(mingwW64EnvironmentResolver instanceof DefaultEnvironmentResolver) {	// Globals
+			DefaultEnvironmentResolver defaultEnvironmentResolver = (DefaultEnvironmentResolver) mingwW64EnvironmentResolver;
+			defaultEnvironmentResolver.setPathAppend(pathAppend);
+			defaultEnvironmentResolver.setLdLibraryPathAppend(ldLibraryPathAppend);
+			defaultEnvironmentResolver.setDyldLibraryPathAppend(dyldLibraryPathAppend);
+			defaultEnvironmentResolver.setEnvvarMap(envvarGlobal);
+		}
+		mingwW64EnvironmentResolver.setEnvvarMap(envvarMingwW64);
+		if(mingwW64Home != null)
+			mingwW64EnvironmentResolver.setHome(mingwW64Home, true);
+		platform.setMingwW64EnvironmentResolver(mingwW64EnvironmentResolver);
+
+		// QT
 		QtEnvironmentResolver qtEnvironmentResolver = new QtEnvironmentResolver(platform);
 		if(qtEnvironmentResolver instanceof DefaultEnvironmentResolver) {		// Globals
 			DefaultEnvironmentResolver defaultEnvironmentResolver = (DefaultEnvironmentResolver) qtEnvironmentResolver;

@@ -10,9 +10,12 @@ import org.qtjambi.buildtool.maven.Platform;
 import org.qtjambi.buildtool.maven.utils.Utils;
 
 public class MingwEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
+	public static final String K_mingw32_make = "mingw32-make";
+
 	private String home;
 	private String crossCompilePrefix;
 	private Map<String,String> commandMap;
+	private String commandMake;
 
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
@@ -22,6 +25,7 @@ public class MingwEnvironmentResolver extends DefaultEnvironmentResolver impleme
 	public MingwEnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
+		commandMake = K_mingw32_make;
 	}
 
 	public void setHome(String home, boolean autoConfigure) {
@@ -84,5 +88,9 @@ public class MingwEnvironmentResolver extends DefaultEnvironmentResolver impleme
 			}
 		}
 		return commandPath;
+	}
+
+	public String resolveCommandMake() {
+		return commandMake;
 	}
 }

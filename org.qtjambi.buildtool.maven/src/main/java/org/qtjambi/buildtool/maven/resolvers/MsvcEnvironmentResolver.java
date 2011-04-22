@@ -9,9 +9,11 @@ import org.qtjambi.buildtool.maven.Platform;
 import org.qtjambi.buildtool.maven.utils.Utils;
 
 public class MsvcEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
+	public static final String K_nmake = "nmake";
 
 	private String home;
 	private Map<String,String> commandMap;
+	private String commandMake;
 
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
@@ -21,6 +23,7 @@ public class MsvcEnvironmentResolver extends DefaultEnvironmentResolver implemen
 	public MsvcEnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
+		commandMake = K_nmake;
 	}
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
@@ -40,5 +43,9 @@ public class MsvcEnvironmentResolver extends DefaultEnvironmentResolver implemen
 
 		if(dyldLibraryPathAppend != null)
 			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
+	}
+
+	public String resolveCommandMake() {
+		return commandMake;
 	}
 }

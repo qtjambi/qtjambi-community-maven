@@ -23,6 +23,14 @@ public class JavaEnvironmentResolver extends DefaultEnvironmentResolver implemen
 		commandMap = new HashMap<String,String>();
 	}
 
+	// envvarMap
+	//  unset JAVA_OPTS
+	//  unset JAVAFX_HOME
+	//  unset MAVEN
+	//  unset MAVEN_HOME
+	//  unset ANT
+	/// unset ANT_HOME
+
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
 		super.applyEnvironmentVariables(envvar);
 		applyEnvironmentVariablesNoParent(envvar);

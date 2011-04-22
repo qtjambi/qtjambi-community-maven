@@ -9,9 +9,13 @@ import org.qtjambi.buildtool.maven.Platform;
 import org.qtjambi.buildtool.maven.utils.Utils;
 
 public class DefaultEnvironmentResolver implements IEnvironmentResolver {
+	public static final String K_make = "make";
+
 	public static final String K_PATH		 		= "PATH";
 	public static final String K_LD_LIBRARY_PATH	= "LD_LIBRARY_PATH";
 	public static final String K_DYLD_LIBRARY_PATH	= "DYLD_LIBRARY_PATH";
+
+	private String commandMake;
 
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
@@ -22,6 +26,7 @@ public class DefaultEnvironmentResolver implements IEnvironmentResolver {
 
 	public DefaultEnvironmentResolver(Platform platform) {
 		this.platform = platform;
+		commandMake = K_make;
 	}
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
@@ -48,6 +53,10 @@ public class DefaultEnvironmentResolver implements IEnvironmentResolver {
 			command = dir.getAbsolutePath() + File.separator + command;
 
 		return platform.makeExeFilename(command);
+	}
+
+	public String resolveCommandMake() {
+		return commandMake;
 	}
 
 	public List<String> getPathAppend() {

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.qtjambi.buildtool.maven.Toolchain;
+
 public abstract class Utils {
 	public static String[] stringArraySplit(String value, String str) {
 		List<String> list = new ArrayList<String>();
@@ -223,5 +225,37 @@ public abstract class Utils {
 			list = new ArrayList<String>();
 		list.add(s);
 		return list;
+	}
+	
+	public static final String K_gcc 		= "gcc";
+	public static final String K_mingw 		= "mingw";
+	public static final String K_mingw_w64 	= "mingw_w64";	// prefered
+	public static final String K_mingw__w64 = "mingw-w64";
+	public static final String K_msvc 		= "msvc";
+
+	public static Toolchain toolchainFromLabel(String s) {
+		if(s.equalsIgnoreCase(K_gcc))
+			return Toolchain.gcc;
+		if(s.equalsIgnoreCase(K_mingw))
+			return Toolchain.mingw;
+		if(s.equalsIgnoreCase(K_mingw_w64) || s.equalsIgnoreCase(K_mingw__w64))
+			return Toolchain.mingw_w64;
+		if(s.equalsIgnoreCase(K_msvc))
+			return Toolchain.msvc;
+		return null;
+	}
+
+	public static String toolchainToLabel(Toolchain t) {
+		switch(t) {
+		case gcc:
+			return K_gcc;
+		case mingw:
+			return K_mingw;
+		case mingw_w64:
+			return K_mingw_w64;
+		case msvc:
+			return K_msvc;
+		}
+		return null;
 	}
 }

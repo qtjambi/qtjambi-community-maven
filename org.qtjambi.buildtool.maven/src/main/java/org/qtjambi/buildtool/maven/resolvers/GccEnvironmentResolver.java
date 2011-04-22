@@ -9,9 +9,11 @@ import org.qtjambi.buildtool.maven.Platform;
 import org.qtjambi.buildtool.maven.utils.Utils;
 
 public class GccEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
+	public static final String K_make = "make";
 
 	private String home;
 	private Map<String,String> commandMap;
+	private String commandMake;
 
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
@@ -21,6 +23,11 @@ public class GccEnvironmentResolver extends DefaultEnvironmentResolver implement
 	public GccEnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
+		commandMake = K_make;
+	}
+
+	public void autoConfigure() {
+		
 	}
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
@@ -40,5 +47,9 @@ public class GccEnvironmentResolver extends DefaultEnvironmentResolver implement
 
 		if(dyldLibraryPathAppend != null)
 			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
+	}
+
+	public String resolveCommandMake() {
+		return commandMake;
 	}
 }

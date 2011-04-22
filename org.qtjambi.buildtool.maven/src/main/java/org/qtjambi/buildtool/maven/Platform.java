@@ -10,6 +10,7 @@ public class Platform {
 	private String exeSuffix;
 	private String batSuffix;
 	private String shSuffix;
+	private Toolchain toolchain;
 
 	private IEnvironmentResolver globalEnvironmentResolver;
 	private IEnvironmentResolver gccEnvironmentResolver;
@@ -80,6 +81,20 @@ public class Platform {
 		return filename;
 	}
 
+	public IEnvironmentResolver environmentResolverWithToolchain() {
+		switch(toolchain) {
+		case gcc:
+			return getGccEnvironmentResolver();
+		case mingw:
+			return getMingwEnvironmentResolver();
+		case mingw_w64:
+			return getMingwW64EnvironmentResolver();
+		case msvc:
+			return getMsvcEnvironmentResolver();
+		}
+		return null;
+	}
+
 	public boolean isLinux(boolean andUnsure) {
 		if(osName == null)
 			return andUnsure;
@@ -138,6 +153,13 @@ public class Platform {
 	}
 	public String getOsVersion() {
 		return osVersion;
+	}
+
+	public Toolchain getToolchain() {
+		return toolchain;
+	}
+	public void setToolchain(Toolchain toolchain) {
+		this.toolchain = toolchain;
 	}
 
 	public IEnvironmentResolver getGlobalEnvironmentResolver() {

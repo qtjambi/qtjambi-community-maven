@@ -207,9 +207,11 @@ public class DiagnosticMojo extends AbstractMojo {
 
 	private void pathCheck() {
 		String pathSeparator = File.pathSeparator;
-		String path = System.getenv("PATH");
-		if(path == null)
+		String path = System.getenv(DefaultEnvironmentResolver.K_PATH);
+		if(path == null) {
+			getLog().warn(" PATH envvar is not set; strange");
 			return;
+		}
 		Set<String> seenSet = new HashSet<String>();
 		int i = 0;
 		int n;
@@ -240,13 +242,14 @@ public class DiagnosticMojo extends AbstractMojo {
 
 		for(String p : pathA) {
 			File dir = new File(p);
-			String thisFilename = environmentResolver.resolveCommand(dir, filename);	// resolve ABS exec 
+			String thisFilename = environmentResolver.resolveCommand(null, filename);	// resolve ABS exec 
+			File file = new File(dir, thisFilename);
 			if(dir.exists() && dir.isDirectory()) {
-				Integer exitStatus = runCheckOnce(context, environmentResolver, thisFilename, args);
-				// FIXME: Log this fact
-			} else {
-				// FIXME: Log this fact
-				context.getLog().info(thisFilename + "; PATH element \"" + p + "\"; does not exist");
+				if(file.exists() && file.isFile() && file.canExecute()) {
+					Integer exitStatus = runCheckOnce(context, environmentResolver, file.getAbsolutePath(), args);
+					// FIXME: Log this fact
+				}
+				// If the dir does not exist pathCheck() will have logged it to the user
 			}
 		}
 	}

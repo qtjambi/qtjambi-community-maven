@@ -8,4 +8,6 @@ public interface IEnvironmentResolver {
 	void applyEnvironmentVariablesNoParent(Map<String,String> envvar);
 
 	String resolveCommand(File dir, String file);
+
+	String resolveCommandMake();
 }

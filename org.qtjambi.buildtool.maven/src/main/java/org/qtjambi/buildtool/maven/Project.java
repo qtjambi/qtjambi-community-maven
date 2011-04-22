@@ -1,12 +1,9 @@
 package org.qtjambi.buildtool.maven;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -21,7 +18,6 @@ import java.util.Random;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.qtjambi.buildtool.maven.resolvers.DefaultEnvironmentResolver;
 import org.qtjambi.buildtool.maven.resolvers.RuntimeEnvironmentResolver;
 import org.qtjambi.buildtool.maven.utils.ProcessUtils;
 import org.qtjambi.buildtool.maven.utils.Utils;
@@ -38,7 +34,7 @@ public class Project {
 	public boolean runQmake() {
 		IEnvironmentResolver environmentResolver = context.getPlatform().getQtEnvironmentResolver();
 
-		String qtQmake = "qmake";
+		String qtQmake = environmentResolver.resolveCommandMake();
 
 		List<String> command = new ArrayList<String>();
 		String commandExe = environmentResolver.resolveCommand(toplevelDir, qtQmake);
@@ -63,14 +59,13 @@ public class Project {
 		return true;
 	}
 
-	// FIXME: Resolve toolchain to use
 	public boolean runMake() {
-		IEnvironmentResolver environmentResolver = context.getPlatform().getMingwEnvironmentResolver();
+		IEnvironmentResolver environmentResolver = context.getPlatform().environmentResolverWithToolchain();
 
-		String qtQmake = "mingw32-make";
+		String make = environmentResolver.resolveCommandMake();
 
 		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(toplevelDir, qtQmake);
+		String commandExe = environmentResolver.resolveCommand(toplevelDir, make);
 		command.add(commandExe);
 		//for(Object o : args)
 		//	command.add(o.toString());

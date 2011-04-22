@@ -1,5 +1,6 @@
 package org.qtjambi.buildtool.maven.resolvers;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,9 +10,12 @@ import org.qtjambi.buildtool.maven.Platform;
 import org.qtjambi.buildtool.maven.utils.Utils;
 
 public class MingwW64EnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
+	public static final String K_mingw32_make = "mingw32-make";
 
 	private String home;
+	private String crossCompilePrefix;
 	private Map<String,String> commandMap;
+	private String commandMake;
 
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
@@ -21,6 +25,23 @@ public class MingwW64EnvironmentResolver extends DefaultEnvironmentResolver impl
 	public MingwW64EnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
+		commandMake = K_mingw32_make;
+	}
+
+	public void setHome(String home, boolean autoConfigure) {
+		this.home = home;
+
+		// AUTO
+		//  pathAppend += ${home}/bin
+		if(autoConfigure) {
+			File dirHome = new File(home);
+			if(dirHome.exists() && dirHome.isDirectory()) {
+				File dirHomeBin = new File(home, "bin");
+				if(dirHomeBin.exists() && dirHomeBin.isDirectory()) {
+					pathAppend = Utils.safeListStringAppend(pathAppend, "<" + dirHomeBin.getAbsolutePath());	// prepend
+				}
+			}
+		}
 	}
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
@@ -40,5 +61,9 @@ public class MingwW64EnvironmentResolver extends DefaultEnvironmentResolver impl
 
 		if(dyldLibraryPathAppend != null)
 			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
+	}
+
+	public String resolveCommandMake() {
+		return commandMake;
 	}
 }
