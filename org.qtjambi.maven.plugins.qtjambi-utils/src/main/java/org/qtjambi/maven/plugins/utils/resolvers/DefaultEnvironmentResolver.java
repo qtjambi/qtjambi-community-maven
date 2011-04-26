@@ -1,12 +1,12 @@
-package org.qtjambi.buildtool.maven.resolvers;
+package org.qtjambi.maven.plugins.utils.resolvers;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import org.qtjambi.buildtool.maven.IEnvironmentResolver;
-import org.qtjambi.buildtool.maven.Platform;
-import org.qtjambi.buildtool.maven.utils.Utils;
+import org.qtjambi.maven.plugins.utils.IEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.Platform;
+import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 public class DefaultEnvironmentResolver implements IEnvironmentResolver {
 	public static final String K_make = "make";

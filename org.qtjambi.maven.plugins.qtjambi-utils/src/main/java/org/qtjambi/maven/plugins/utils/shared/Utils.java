@@ -1,11 +1,11 @@
-package org.qtjambi.buildtool.maven.utils;
+package org.qtjambi.maven.plugins.utils.shared;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.qtjambi.buildtool.maven.Toolchain;
+import org.qtjambi.maven.plugins.utils.Toolchain;
 
 public abstract class Utils {
 	public static String[] stringArraySplit(String value, String str) {

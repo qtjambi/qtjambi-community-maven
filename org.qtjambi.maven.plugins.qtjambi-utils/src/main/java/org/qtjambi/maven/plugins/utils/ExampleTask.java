@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.maven;
+package org.qtjambi.maven.plugins.utils;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;

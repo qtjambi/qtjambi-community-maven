@@ -2,14 +2,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.qtjambi</groupId>
+		<groupId>org.qtjambi.maven.plugins</groupId>
 		<artifactId>parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../org.qtjambi.parent/pom.xml</relativePath>
+		<relativePath>../org.qtjambi.maven.plugins/pom.xml</relativePath>
 	</parent>
-	<groupId>org.qtjambi.plugin</groupId>
-	<artifactId>qtjambi-maven-plugin</artifactId>
-	<packaging>maven-plugin</packaging>
+	<groupId>org.qtjambi.maven.plugins</groupId>
+	<artifactId>utils</artifactId>
+	<packaging>jar</packaging>
 	<name>${project.groupId}.${project.artifactId}</name>
 	<version>0.0.1-SNAPSHOT</version>
 	<description>This is the Maven plugin project to help build QtJambi</description>
@@ -54,11 +54,6 @@
 					<source>1.5</source>
 					<target>1.5</target>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-plugin-plugin</artifactId>
-				<version>2.7</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -123,17 +118,7 @@
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-plugin-api</artifactId>
-			<version>2.0</version>
+			<version>${version.org.apache.maven.maven-plugin-api}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.codehaus.plexus</groupId>
-			<artifactId>plexus-utils</artifactId>
-			<version>${version.org.codehaus.plexus.plexus-utils}</version>
-		</dependency>
-		<!-- <dependency>
-			<groupId>org.codehaus.plexus</groupId>
-			<artifactId>plexus-compiler-manager</artifactId>
-			<version>${version.org.codehaus.plexus}</version>
-		</dependency> -->
 	</dependencies>
 </project>

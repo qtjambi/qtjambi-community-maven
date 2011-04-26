@@ -1,33 +1,37 @@
-package org.qtjambi.buildtool.maven.resolvers;
+package org.qtjambi.maven.plugins.utils.resolvers;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.qtjambi.buildtool.maven.IEnvironmentResolver;
-import org.qtjambi.buildtool.maven.Platform;
-import org.qtjambi.buildtool.maven.utils.Utils;
+import org.qtjambi.maven.plugins.utils.IEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.Platform;
+import org.qtjambi.maven.plugins.utils.shared.Utils;
 
-/**
- * This environment is about providing the right things to run outputted Qt or Java+Qt applications.
- * @author Darryl
- *
- */
-public class RuntimeEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
+public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
+	public static final String K_qmake = "qmake";
+
+	public static final String K_QMAKESPECS			= "QMAKESPECS";
+
+	private String home;
 	private Map<String,String> commandMap;
+	private String qmakespecs;
+	private String commandMake;
 
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
 	private List<String> dyldLibraryPathAppend;
 	private Map<String,String> envvarMap;
 
-	public RuntimeEnvironmentResolver(Platform platform) {
+	public QtEnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
+		commandMake = K_qmake;
 	}
 
 	public void setHome(String home, boolean autoConfigure) {
+		this.home = home;
 
 		// AUTO
 		//  pathAppend += ${home}/bin
@@ -52,12 +56,25 @@ public class RuntimeEnvironmentResolver extends DefaultEnvironmentResolver imple
 					pathAppend = Utils.safeListStringAppend(pathAppend, "<" + dirHomeBin.getAbsolutePath());	// prepend
 				}
 			}
+			// envvarMap
+			//  unset QTDIR
+			//  unset QTINC
+			//  unset QTLIB
+			//  unset QT_IM_MODULE
+			//  unset QT_PLUGIN_PATH
 		}
+	}
+
+	public void setQmakespecs(String qmakespecs) {
+		this.qmakespecs = qmakespecs;
 	}
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
 		super.applyEnvironmentVariables(envvar);
+		applyEnvironmentVariablesNoParent(envvar);
+	}
 
+	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
 		if(envvarMap != null)
 			Utils.applyEnvVarMap(envvar, envvarMap);
 
@@ -70,24 +87,8 @@ public class RuntimeEnvironmentResolver extends DefaultEnvironmentResolver imple
 		if(dyldLibraryPathAppend != null)
 			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
 
-		IEnvironmentResolver environmentResolver;
-
-		environmentResolver = platform.getGlobalEnvironmentResolver();
-		if(environmentResolver != null)
-			environmentResolver.applyEnvironmentVariablesNoParent(envvar);
-
-		// FIXME: Make this toolchain related
-		environmentResolver = platform.getMingwEnvironmentResolver();
-		if(environmentResolver != null)
-			environmentResolver.applyEnvironmentVariablesNoParent(envvar);
-
-		environmentResolver = platform.getQtEnvironmentResolver();
-		if(environmentResolver != null)
-			environmentResolver.applyEnvironmentVariablesNoParent(envvar);
-
-		environmentResolver = platform.getJavaEnvironmentResolver();
-		if(environmentResolver != null)
-			environmentResolver.applyEnvironmentVariablesNoParent(envvar);
+		if(qmakespecs != null)
+			envvar.put(K_QMAKESPECS, qmakespecs);
 	}
 
 	public String resolveCommand(File dir, String command) {
@@ -99,8 +100,25 @@ public class RuntimeEnvironmentResolver extends DefaultEnvironmentResolver imple
 			return command;
 		}
 
+		String commandPath = command;
+
 		// Resolve ???
-		String commandPath = platform.makeExeFilename(command);
+		String fileString = platform.makeExeFilename(command);
+		if(home != null) {
+			File dirHome = new File(home);
+			if(dirHome.isDirectory()) {
+				String relPath = Utils.resolveFileSeparator(new String[] { "bin", fileString });
+				File file = new File(dirHome, relPath);
+				if(file.exists() && file.isFile() && file.canExecute()) {
+					commandPath = file.getAbsolutePath();
+					commandMap.put(command, commandPath);
+				}
+			}
+		}
 		return commandPath;
+	}
+
+	public String resolveCommandMake() {
+		return commandMake;
 	}
 }

@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.maven;
+package org.qtjambi.maven.plugins.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,14 +19,14 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.qtjambi.buildtool.maven.internal.Arguments;
-import org.qtjambi.buildtool.maven.internal.ProcessBuilder;
-import org.qtjambi.buildtool.maven.resolvers.DefaultEnvironmentResolver;
-import org.qtjambi.buildtool.maven.resolvers.GccEnvironmentResolver;
-import org.qtjambi.buildtool.maven.resolvers.JavaEnvironmentResolver;
-import org.qtjambi.buildtool.maven.resolvers.MingwEnvironmentResolver;
-import org.qtjambi.buildtool.maven.resolvers.MsvcEnvironmentResolver;
-import org.qtjambi.buildtool.maven.utils.Utils;
+import org.qtjambi.maven.plugins.utils.internal.Arguments;
+import org.qtjambi.maven.plugins.utils.internal.ProcessBuilder;
+import org.qtjambi.maven.plugins.utils.resolvers.DefaultEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.GccEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.JavaEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.MingwEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.MsvcEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 /**
  * The purpose of this is to allow the maintainers of QtJambi to

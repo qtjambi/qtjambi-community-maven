@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.maven;
+package org.qtjambi.maven.plugins.utils;
 
 public enum Toolchain {
 	gcc,

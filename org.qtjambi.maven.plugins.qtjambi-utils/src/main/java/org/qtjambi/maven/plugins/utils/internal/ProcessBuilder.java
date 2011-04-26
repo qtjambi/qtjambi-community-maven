@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.maven.internal;
+package org.qtjambi.maven.plugins.utils.internal;
 
 import java.io.File;
 import java.io.IOException;

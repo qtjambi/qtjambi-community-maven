@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.maven.utils;
+package org.qtjambi.maven.plugins.utils.shared;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.qtjambi.buildtool.maven.internal.ProcessBuilder;
+import org.qtjambi.maven.plugins.utils.internal.ProcessBuilder;
 
 public class ProcessUtils {
 	public static Integer run(ProcessBuilder processBuilder) {

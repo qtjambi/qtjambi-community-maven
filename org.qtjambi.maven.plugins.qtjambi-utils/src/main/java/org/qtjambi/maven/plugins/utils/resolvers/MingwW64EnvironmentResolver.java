@@ -1,15 +1,15 @@
-package org.qtjambi.buildtool.maven.resolvers;
+package org.qtjambi.maven.plugins.utils.resolvers;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.qtjambi.buildtool.maven.IEnvironmentResolver;
-import org.qtjambi.buildtool.maven.Platform;
-import org.qtjambi.buildtool.maven.utils.Utils;
+import org.qtjambi.maven.plugins.utils.IEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.Platform;
+import org.qtjambi.maven.plugins.utils.shared.Utils;
 
-public class MingwEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
+public class MingwW64EnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
 	public static final String K_mingw32_make = "mingw32-make";
 
 	private String home;
@@ -22,7 +22,7 @@ public class MingwEnvironmentResolver extends DefaultEnvironmentResolver impleme
 	private List<String> dyldLibraryPathAppend;
 	private Map<String,String> envvarMap;
 
-	public MingwEnvironmentResolver(Platform platform) {
+	public MingwW64EnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
 		commandMake = K_mingw32_make;
@@ -61,33 +61,6 @@ public class MingwEnvironmentResolver extends DefaultEnvironmentResolver impleme
 
 		if(dyldLibraryPathAppend != null)
 			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
-	}
-
-	public String resolveCommand(File dir, String command) {
-		if(commandMap.containsKey(command))
-			return commandMap.get(command);
-		if(command.indexOf(File.separator) >= 0) {	// Windows can't execute relative paths must convert to absolute
-			if(dir != null && command.startsWith(File.separator) == false)
-				command = dir.getAbsolutePath() + File.separator + platform.makeExeFilename(command);
-			return command;
-		}
-
-		String commandPath = command;
-
-		// Resolve ???
-		String fileString = platform.makeExeFilename(command);
-		if(home != null) {
-			File dirHome = new File(home);
-			if(dirHome.isDirectory()) {
-				String relPath = Utils.resolveFileSeparator(new String[] { "bin", fileString });
-				File file = new File(dirHome, relPath);
-				if(file.exists() && file.isFile() && file.canExecute()) {
-					commandPath = file.getAbsolutePath();
-					commandMap.put(command, commandPath);
-				}
-			}
-		}
-		return commandPath;
 	}
 
 	public String resolveCommandMake() {

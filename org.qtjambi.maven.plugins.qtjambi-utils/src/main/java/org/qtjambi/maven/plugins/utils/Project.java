@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.maven;
+package org.qtjambi.maven.plugins.utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,9 +18,9 @@ import java.util.Random;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.qtjambi.buildtool.maven.resolvers.RuntimeEnvironmentResolver;
-import org.qtjambi.buildtool.maven.utils.ProcessUtils;
-import org.qtjambi.buildtool.maven.utils.Utils;
+import org.qtjambi.maven.plugins.utils.resolvers.RuntimeEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.shared.ProcessUtils;
+import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 public class Project {
 	private Context context;
@@ -50,7 +50,7 @@ public class Project {
 		}
 		//for(Object o : args)
 		//	command.add(o.toString());
-		org.qtjambi.buildtool.maven.internal.ProcessBuilder processBuilder = new org.qtjambi.buildtool.maven.internal.ProcessBuilder(context.getLog(), command);
+		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog(), command);
 
 		if(targetDir != null)
 			processBuilder.directory(targetDir);
@@ -85,7 +85,7 @@ public class Project {
 		command.add(commandExe);
 		//for(Object o : args)
 		//	command.add(o.toString());
-		org.qtjambi.buildtool.maven.internal.ProcessBuilder processBuilder = new org.qtjambi.buildtool.maven.internal.ProcessBuilder(context.getLog(), command);
+		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog(), command);
 
 		if(targetDir != null)
 			processBuilder.directory(targetDir);
@@ -123,7 +123,7 @@ public class Project {
 		command.add(commandExe);
 		//for(Object o : args)
 		//	command.add(o.toString());
-		org.qtjambi.buildtool.maven.internal.ProcessBuilder processBuilder = new org.qtjambi.buildtool.maven.internal.ProcessBuilder(context.getLog(), command);
+		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog(), command);
 
 		if(targetDir != null)
 			processBuilder.directory(targetDir);

@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.maven.utils;
+package org.qtjambi.maven.plugins.utils.shared;
 
 import java.io.BufferedReader;
 import java.io.IOException;

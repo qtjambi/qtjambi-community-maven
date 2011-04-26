@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.maven.internal;
+package org.qtjambi.maven.plugins.utils.internal;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -8,15 +8,15 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.plugin.logging.Log;
-import org.qtjambi.buildtool.maven.Platform;
-import org.qtjambi.buildtool.maven.Toolchain;
-import org.qtjambi.buildtool.maven.resolvers.DefaultEnvironmentResolver;
-import org.qtjambi.buildtool.maven.resolvers.GccEnvironmentResolver;
-import org.qtjambi.buildtool.maven.resolvers.JavaEnvironmentResolver;
-import org.qtjambi.buildtool.maven.resolvers.MingwEnvironmentResolver;
-import org.qtjambi.buildtool.maven.resolvers.MingwW64EnvironmentResolver;
-import org.qtjambi.buildtool.maven.resolvers.QtEnvironmentResolver;
-import org.qtjambi.buildtool.maven.utils.Utils;
+import org.qtjambi.maven.plugins.utils.Platform;
+import org.qtjambi.maven.plugins.utils.Toolchain;
+import org.qtjambi.maven.plugins.utils.resolvers.DefaultEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.GccEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.JavaEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.MingwEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.MingwW64EnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.QtEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 // TODO: Dump available platforms, disambiguate
 public class Arguments {

@@ -1,19 +1,17 @@
-package org.qtjambi.buildtool.maven.resolvers;
+package org.qtjambi.maven.plugins.utils.resolvers;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.qtjambi.buildtool.maven.IEnvironmentResolver;
-import org.qtjambi.buildtool.maven.Platform;
-import org.qtjambi.buildtool.maven.utils.Utils;
+import org.qtjambi.maven.plugins.utils.IEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.Platform;
+import org.qtjambi.maven.plugins.utils.shared.Utils;
 
-public class MingwW64EnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
-	public static final String K_mingw32_make = "mingw32-make";
+public class GccEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
+	public static final String K_make = "make";
 
 	private String home;
-	private String crossCompilePrefix;
 	private Map<String,String> commandMap;
 	private String commandMake;
 
@@ -22,26 +20,14 @@ public class MingwW64EnvironmentResolver extends DefaultEnvironmentResolver impl
 	private List<String> dyldLibraryPathAppend;
 	private Map<String,String> envvarMap;
 
-	public MingwW64EnvironmentResolver(Platform platform) {
+	public GccEnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
-		commandMake = K_mingw32_make;
+		commandMake = K_make;
 	}
 
-	public void setHome(String home, boolean autoConfigure) {
-		this.home = home;
-
-		// AUTO
-		//  pathAppend += ${home}/bin
-		if(autoConfigure) {
-			File dirHome = new File(home);
-			if(dirHome.exists() && dirHome.isDirectory()) {
-				File dirHomeBin = new File(home, "bin");
-				if(dirHomeBin.exists() && dirHomeBin.isDirectory()) {
-					pathAppend = Utils.safeListStringAppend(pathAppend, "<" + dirHomeBin.getAbsolutePath());	// prepend
-				}
-			}
-		}
+	public void autoConfigure() {
+		
 	}
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {

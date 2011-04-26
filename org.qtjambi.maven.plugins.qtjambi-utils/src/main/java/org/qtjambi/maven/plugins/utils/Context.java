@@ -1,7 +1,7 @@
-package org.qtjambi.buildtool.maven;
+package org.qtjambi.maven.plugins.utils;
 
 import org.apache.maven.plugin.logging.Log;
-import org.qtjambi.buildtool.maven.internal.Arguments;
+import org.qtjambi.maven.plugins.utils.internal.Arguments;
 
 public class Context {
 	private Platform platform;
