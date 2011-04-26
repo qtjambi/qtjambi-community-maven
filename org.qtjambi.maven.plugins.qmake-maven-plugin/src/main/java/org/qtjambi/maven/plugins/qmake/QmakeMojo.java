@@ -108,7 +108,10 @@ public class QmakeMojo extends AbstractMojo {
 
 	// Search sourceDirectory for *.pro files
 
-	public void execute() throws MojoExecutionException, MojoFailureException {
+	/**
+	 * @execute phase="initialize"
+	 */
+	public void executeInitialize() throws MojoExecutionException, MojoFailureException {
 		init();
 
 		getLog().debug("testString=" + testString);
@@ -128,6 +131,12 @@ public class QmakeMojo extends AbstractMojo {
 		if(detectQmakeVersion() == false)
 			throw new MojoFailureException("Unable to detect qmake version");
 		getLog().info(QmakeMojo.class.getName() + " QMAKE_VERSION=" + qmakeVersion);
+	}
+
+	/**
+	 * @execute
+	 */
+	public void execute() throws MojoExecutionException, MojoFailureException {
 	}
 
 	private String getProjectProperty(String key) {
