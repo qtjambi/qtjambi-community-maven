@@ -152,7 +152,7 @@ public class DiagnosticMojo extends AbstractMojo {
 		try {
 			project = Project.extractFromClasspath(context, "qt_test");
 			if(project != null) {
-				project.runQmake();
+				project.runQmake(null);
 				project.runMake();
 				project.runProjectProgram("qt_test");
 			}

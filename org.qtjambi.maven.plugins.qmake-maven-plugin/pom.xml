@@ -128,7 +128,7 @@
 		<dependency>
 			<groupId>org.qtjambi.maven.plugins</groupId>
 			<artifactId>utils</artifactId>
-			<version>${version.org.qtjambi.maven.utils}</version>
+			<version>${version.org.qtjambi.maven.plugins.utils}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>

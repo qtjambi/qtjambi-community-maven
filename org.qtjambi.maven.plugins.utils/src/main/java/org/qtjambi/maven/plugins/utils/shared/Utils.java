@@ -294,4 +294,19 @@ public abstract class Utils {
 		}
 		return null;
 	}
+
+	public static String debugStringArrayPretty(Object[] oA) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("[");
+		boolean first = true;
+		for(Object o : oA) {
+			if(first)
+				first = false;
+			else
+				sb.append(", ");
+			sb.append(o.toString());
+		}
+		sb.append("]");
+		return sb.toString();
+	}
 }

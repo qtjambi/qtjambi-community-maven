@@ -104,11 +104,11 @@
 		<version.org.qtjambi.buildtools.ant>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.ant>
 		<version.org.qtjambi.buildtools.generator>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.generator>
 		<version.org.qtjambi.buildtools.juic>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.juic>
-		<version.org.qtjambi.maven>0.0.1-SNAPSHOT</version.org.qtjambi.maven>
-		<version.org.qtjambi.maven.generator-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.generator-maven-plugin>
-		<version.org.qtjambi.maven.juic-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.juic-maven-plugin>
-		<version.org.qtjambi.maven.qmake-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.qmake-maven-plugin>
-		<version.org.qtjambi.maven.utils>0.0.1-SNAPSHOT</version.org.qtjambi.maven.utils>
+		<version.org.qtjambi.maven.plugins>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins>
+		<version.org.qtjambi.maven.plugins.generator-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins.generator-maven-plugin>
+		<version.org.qtjambi.maven.plugins.juic-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins.juic-maven-plugin>
+		<version.org.qtjambi.maven.plugins.qmake-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins.qmake-maven-plugin>
+		<version.org.qtjambi.maven.plugins.utils>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins.utils>
 		<version.org.qtjambi.buildtools.qdoc3>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.qdoc3>
 		<version.org.qtjambi.examples.generic>0.0.1-SNAPSHOT</version.org.qtjambi.examples.generic>
 		<version.org.qtjambi.examples.jnlp>0.0.1-SNAPSHOT</version.org.qtjambi.examples.jnlp>

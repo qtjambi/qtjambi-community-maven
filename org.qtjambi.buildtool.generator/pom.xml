@@ -46,13 +46,25 @@
 		<finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<!-- http://maven.apache.org/plugins/maven-compiler-plugin/ -->
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.qtjambi.maven.plugins</groupId>
 				<artifactId>qmake-maven-plugin</artifactId>
-				<version>${version.org.qtjambi.maven.qmake-maven-plugin}</version>
+				<version>${version.org.qtjambi.maven.plugins.qmake-maven-plugin}</version>
 				<configuration>
 					<testString>Test String Hello</testString>
 					<qtDir>${project.qtdir}</qtDir>
-					<include>generator.pro</include>
+					<includes>
+						<include>generator.pro</include>
+					</includes>
 				</configuration>
 			</plugin>
 			<!-- <plugin>
@@ -124,6 +136,7 @@
 					<descriptors>
 						<descriptor>src/main/assembly/distribution.xml</descriptor>
 						<descriptor>src/main/assembly/project.xml</descriptor>
+						<descriptor>src/main/assembly/win32-win32-mingw.xml</descriptor>
 					</descriptors>
 				</configuration>
 			</plugin>
@@ -135,7 +148,7 @@
 		<dependency>
 			<groupId>org.qtjambi.maven.plugins</groupId>
 			<artifactId>utils</artifactId>
-			<version>${version.org.qtjambi.maven.utils}</version>
+			<version>${version.org.qtjambi.maven.plugins.utils}</version>
 		</dependency>
 	</dependencies>
 </project>

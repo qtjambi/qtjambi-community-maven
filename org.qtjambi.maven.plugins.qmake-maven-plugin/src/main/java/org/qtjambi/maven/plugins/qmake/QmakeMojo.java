@@ -16,13 +16,17 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.util.DirectoryScanner;
+import org.qtjambi.maven.plugins.utils.Context;
+import org.qtjambi.maven.plugins.utils.Platform;
+import org.qtjambi.maven.plugins.utils.Project;
+import org.qtjambi.maven.plugins.utils.internal.Arguments;
 import org.qtjambi.maven.plugins.utils.internal.ProcessBuilder;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 /**
  * 
- * @phase compile
- * @author <a href="darryl.miles@darrylmiles.org">Darryl L. Miles<a/>
+ * @goal compile
+ * @author <a href="mailto:darryl.miles@darrylmiles.org">Darryl L. Miles</a>
  *
  */
 public class QmakeMojo extends AbstractMojo {
@@ -44,24 +48,24 @@ public class QmakeMojo extends AbstractMojo {
 	/**
 	 * @parameter default-value="${basedir}/src/main/native"
 	 */
-	private String sourceDirectory;
+	private File sourceDirectory;
 
 	/**
 	 * @required
 	 * @readonly
-	 * @parameter default-value="${project.build.outputDirectory}"
+	 * @parameter default-value="${project.build.directory}/qmake"
 	 */
 	private File outputDirectory;
 
 	/**
-	 * @parameter default-value="${project.build.directory}/generated-sources/qtjambi-maven-plugin"
-	 */
-	private String generatedSourcesDirectory;
-
-	/**
-	 * @parameter default-value="true"
+	 * @parameter default-value="false"
 	 */
 	private boolean debug;
+
+	/**
+	 * @parameter
+	 */
+	private Integer debugLevel;
 
 	/**
 	 * @parameter default-value="false"
@@ -101,6 +105,7 @@ public class QmakeMojo extends AbstractMojo {
 	// FIXME: Provide goal to test/check for mismatch.
 
 	private boolean initDone;
+	private Context context;
 	private String execSuffix = "";
 	private String K_bin_qmake;		// auto-filled by platform "bin/qmake"
 
@@ -119,6 +124,7 @@ public class QmakeMojo extends AbstractMojo {
 		getLog().debug("sourceDirectory=" + sourceDirectory);
 		getLog().debug("outputDirectory=" + outputDirectory);
 		getLog().debug("debug=" + debug);
+		getLog().debug("debugLevel=" + debugLevel);
 		getLog().debug("optimize=" + optimize);
 		getLog().debug("verbose=" + verbose);
 		getLog().debug("qmakeArguments=" + qmakeArguments);
@@ -130,13 +136,76 @@ public class QmakeMojo extends AbstractMojo {
 		if(detectQmakeVersion() == false)
 			throw new MojoFailureException("Unable to detect qmake version");
 		getLog().info(QmakeMojo.class.getName() + " QMAKE_VERSION=" + qmakeVersion);
+
+		DirectoryScanner ds = getDirectoryScanner();
+		ds.scan();
+		
 	}
 
 	/**
 	 * @execute
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		getLog().info("execure()");
+		getLog().info(QmakeMojo.class.getCanonicalName() + ":execute()");
+
+		{
+			Platform platform = new Platform();
+			platform.detect(getLog());
+			Arguments arguments = new Arguments();
+			arguments.detect(platform, getLog());
+			context = new Context(platform, arguments, getLog());
+		}
+		if(debug && debugLevel == null)
+			debugLevel = Integer.valueOf(1);
+
+		DirectoryScanner ds = getDirectoryScanner();
+		ds.scan();
+		String[] fileA = ds.getIncludedFiles();
+
+		if(getLog().isDebugEnabled()) {
+			getLog().debug("includes[" + includes.size() + "] = " + Utils.debugStringArrayPretty(includes.toArray()));
+			getLog().debug("excludes[" + excludes.size() + "] = " + Utils.debugStringArrayPretty(excludes.toArray()));
+			getLog().debug("found[" + fileA.length + "] = " + Utils.debugStringArrayPretty(fileA));
+		}
+
+		//if(fileA.length == 1) {
+		//	processOne(null, ds.getBasedir(), fileA[0]);
+		//} else {	// subdir
+			for(String f : fileA) {
+				// sub/dir/foo.pro => sub__dir__foo.pro
+				String newF = f.replace(File.separator, "__");
+				processOne(newF, ds.getBasedir(), f);
+			}
+		//}
+	}
+
+	private boolean processOne(String buildDirectoryString, File sourceBaseDir, String qtMakeProFileString) throws MojoExecutionException, MojoFailureException {
+		File buildDirectory;
+		if(buildDirectoryString != null)
+			buildDirectory = new File(outputDirectory, buildDirectoryString);
+		else
+			buildDirectory = outputDirectory;
+		if(buildDirectory.exists() == false) {
+			if(!buildDirectory.mkdirs())
+				throw new MojoExecutionException("mkdirs() " + buildDirectory.toString() + " failed");
+		}
+		File qtMakeProFile = new File(sourceBaseDir, qtMakeProFileString);
+
+		Project project = null;
+		try {
+			project = new Project(context);
+			project.setSourceDir(sourceDirectory, false);
+			project.setTargetDir(buildDirectory, false);
+			if(debugLevel != null)
+				project.setQmakeDebugLevel(debugLevel);
+			if(!project.runQmake(new File[] { qtMakeProFile }))
+				throw new MojoExecutionException("qmake execution failed");
+			if(!project.runMake())
+				throw new MojoExecutionException("make execution failed");
+			return true;
+		} catch(Exception e) {
+			throw new MojoFailureException(e, e.getMessage(), e.getMessage());
+		}
 	}
 
 	private String getProjectProperty(String key) {
@@ -177,13 +246,15 @@ public class QmakeMojo extends AbstractMojo {
 		scanner.setBasedir(sourceDirectory);
 
 		if(includes.isEmpty() && excludes.isEmpty()) {
+			includes.add( "**/*.pro" );
+			scanner.setIncludes(includes.toArray(new String[includes.size()]));
 			return scanner;
 		} else {
 			if(includes.isEmpty()) {
 				includes.add( "**/*.pro" );
 			}
 			scanner.setIncludes(includes.toArray(new String[includes.size()]));
-			scanner.setExcludes(includes.toArray(new String[excludes.size()]));
+			scanner.setExcludes(excludes.toArray(new String[excludes.size()]));
 		}
 
 		return scanner;

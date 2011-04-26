@@ -29,12 +29,14 @@ public class Project {
 	private boolean weCreatedSourceDir;
 	private File targetDir;
 	private boolean weCreatedTargetDir;
+	private List<String> qmakeArguments;
+	private int qmakeDebugLevel;
 
 	public Project(Context context) {
 		this.context = context;
 	}
 
-	public boolean runQmake() {
+	public boolean runQmake(File[] files) {
 		if(errorState)
 			return false;
 		IEnvironmentResolver environmentResolver = context.getPlatform().getQtEnvironmentResolver();
@@ -44,9 +46,22 @@ public class Project {
 		List<String> command = new ArrayList<String>();
 		String commandExe = environmentResolver.resolveCommand(sourceDir, qtQmake);
 		command.add(commandExe);
-		if(targetDir != null && sourceDir != null) {		// shadow build
-			command.add(sourceDir.getAbsolutePath());
-			//command.add(".." + File.separator + sourceDir.getName());
+		if(qmakeArguments != null) {
+			for(String s : qmakeArguments)
+				command.add(s);
+		}
+		if(qmakeDebugLevel > 0) {
+			for(int i = 0; i < qmakeDebugLevel; i++)
+				command.add("-d");
+		}
+		if(files == null) {
+			if(targetDir != null && sourceDir != null) {		// shadow build, search sourceDir
+				command.add(sourceDir.getAbsolutePath());
+				//command.add(".." + File.separator + sourceDir.getName());
+			}
+		} else {
+			for(File f : files)
+				command.add(f.getAbsolutePath());
 		}
 		//for(Object o : args)
 		//	command.add(o.toString());
@@ -178,6 +193,28 @@ public class Project {
 			// Cleanup all the files under, but keep the targetDir itself
 			Utils.deleteRecursive(targetDir);
 		}
+	}
+
+	public boolean getErrorState() {
+		return errorState;
+	}
+
+	public void setSourceDir(File sourceDir, boolean weCreatedSourceDir) {
+		this.sourceDir = sourceDir;
+		this.weCreatedSourceDir = weCreatedSourceDir;
+	}
+
+	public void setTargetDir(File targetDir, boolean weCreatedTargetDir) {
+		this.targetDir = targetDir;
+		this.weCreatedTargetDir = weCreatedTargetDir;
+	}
+
+	public void setQmakeArguments(List<String> qmakeArguments) {
+		this.qmakeArguments = qmakeArguments;
+	}
+
+	public void setQmakeDebugLevel(int qmakeDebugLevel) {
+		this.qmakeDebugLevel = qmakeDebugLevel;
 	}
 
 	// FIXME unused
@@ -352,14 +389,10 @@ public class Project {
 
 		//System.out.println("project extracted: " + myDir.getAbsolutePath());
 		Project project = new Project(context);
-		if(targetDir != null) {
-			project.targetDir = targetDir;
-			project.weCreatedTargetDir = true;
-		}
-		if(sourceDir != null) {
-			project.sourceDir = sourceDir;
-			project.weCreatedSourceDir = true;
-		}
+		if(targetDir != null)
+			project.setTargetDir(targetDir, true);
+		if(sourceDir != null)
+			project.setSourceDir(sourceDir, true);
 		return project;
 	}
 

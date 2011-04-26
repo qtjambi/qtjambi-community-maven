@@ -17,8 +17,8 @@ import org.qtjambi.maven.plugins.utils.internal.ProcessBuilder;
 
 /**
  * 
- * @phase initialize
- * @author <a href="darryl.miles@darrylmiles.org">Darryl L. Miles<a/>
+ * @goal initialize
+ * @author <a href="mailto:darryl.miles@darrylmiles.org">Darryl L. Miles</a>
  *
  */
 public class InitializeMojo extends AbstractMojo {
@@ -44,6 +44,9 @@ public class InitializeMojo extends AbstractMojo {
 	private String qmakeVersion;
 	private static Object qmakeSettings;
 
+	/**
+	 * @execute
+	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		init();
 		getLog().info(InitializeMojo.class.getName() + " QMAKE");

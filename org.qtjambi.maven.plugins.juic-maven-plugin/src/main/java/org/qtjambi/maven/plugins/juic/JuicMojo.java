@@ -22,7 +22,8 @@ import org.qtjambi.maven.plugins.utils.shared.Utils;
 /**
  * 
  * @phase process-sources
- * @author <a href="darryl.miles@darrylmiles.org">Darryl L. Miles<a/>
+ * @goal process-sources
+ * @author <a href="mailto:darryl.miles@darrylmiles.org">Darryl L. Miles</a>
  *
  */
 public class JuicMojo extends AbstractMojo {

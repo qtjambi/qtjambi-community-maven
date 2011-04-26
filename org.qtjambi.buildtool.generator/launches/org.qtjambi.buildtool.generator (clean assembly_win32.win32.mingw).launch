@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.maven.ide.eclipse.Maven2LaunchConfigurationType">
 <booleanAttribute key="M2_DEBUG_OUTPUT" value="true"/>
-<stringAttribute key="M2_GOALS" value="clean org.qtjambi.maven.plugins:qmake-maven-plugin::compile"/>
+<stringAttribute key="M2_GOALS" value="clean assembly:single"/>
 <booleanAttribute key="M2_NON_RECURSIVE" value="false"/>
 <booleanAttribute key="M2_OFFLINE" value="false"/>
 <stringAttribute key="M2_PROFILES" value=""/>
@@ -16,6 +16,7 @@
 <listEntry value="envvar.global.:TEST=foo"/>
 <listEntry value="path.append=-C:\Program Files (x86)\Common Files\Symbian\Tools"/>
 <listEntry value="toolchain=mingw"/>
+<listEntry value="descriptors=src/main/assembly/win32.win32.mingw.xml"/>
 </listAttribute>
 <stringAttribute key="M2_RUNTIME" value="EMBEDDED"/>
 <booleanAttribute key="M2_SKIP_TESTS" value="false"/>
