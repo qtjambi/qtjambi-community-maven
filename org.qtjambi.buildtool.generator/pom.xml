@@ -52,6 +52,7 @@
 				<configuration>
 					<testString>Test String Hello</testString>
 					<qtDir>${project.qtdir}</qtDir>
+					<include>generator.pro</include>
 				</configuration>
 			</plugin>
 			<!-- <plugin>
