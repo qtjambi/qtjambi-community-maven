@@ -1,4 +1,4 @@
-package org.qtjambi.maven.plugins.qmake;
+package org.qtjambi.maven.plugins.juic;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,16 +21,11 @@ import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 /**
  * 
- * @phase compile
+ * @phase process-sources
  * @author <a href="darryl.miles@darrylmiles.org">Darryl L. Miles<a/>
  *
  */
-public class QmakeMojo extends AbstractMojo {
-	/**
-	 * @parameter
-	 */
-	private String testString;
-
+public class JuicMojo extends AbstractMojo {
 	/**
 	 * @parameter
 	 */
@@ -113,7 +108,6 @@ public class QmakeMojo extends AbstractMojo {
 	public void executeInitialize() throws MojoExecutionException, MojoFailureException {
 		init();
 
-		getLog().debug("testString=" + testString);
 		getLog().debug("qtDir=" + qtDir);
 		getLog().debug("environmentVariables=" + environmentVariables);
 		getLog().debug("sourceDirectory=" + sourceDirectory);
@@ -126,17 +120,16 @@ public class QmakeMojo extends AbstractMojo {
 		getLog().debug("includes=" + includes);
 		getLog().debug("excludes=" + excludes);
 
-		getLog().info(QmakeMojo.class.getName() + " QMAKE");
+		getLog().info(JuicMojo.class.getName() + " QMAKE");
 		if(detectQmakeVersion() == false)
 			throw new MojoFailureException("Unable to detect qmake version");
-		getLog().info(QmakeMojo.class.getName() + " QMAKE_VERSION=" + qmakeVersion);
+		getLog().info(JuicMojo.class.getName() + " QMAKE_VERSION=" + qmakeVersion);
 	}
 
 	/**
 	 * @execute
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		getLog().info("execure()");
 	}
 
 	private String getProjectProperty(String key) {

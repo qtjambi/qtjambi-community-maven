@@ -18,7 +18,7 @@ import org.qtjambi.maven.plugins.utils.internal.ProcessBuilder;
 /**
  * 
  * @phase initialize
- * @author Darryl
+ * @author <a href="darryl.miles@darrylmiles.org">Darryl L. Miles<a/>
  *
  */
 public class InitializeMojo extends AbstractMojo {

@@ -122,6 +122,9 @@ public class Project {
 		else if(context.getPlatform().isMacosx(false))
 			progPath = "." + File.separator + progName;
 
+		File dir = sourceDir;
+		if(targetDir != null)
+			dir = targetDir;
 		List<String> command = new ArrayList<String>();
 		String commandExe = environmentResolver.resolveCommand(dir, progPath);
 		command.add(commandExe);
