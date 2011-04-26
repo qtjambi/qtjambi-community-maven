@@ -70,6 +70,7 @@ public class Project {
 			errorState = true;
 			return false;
 		}
+		// FIXME: Record qmake works or not to inhibit the next step or not
 		return true;
 	}
 
@@ -113,10 +114,13 @@ public class Project {
 			return false;
 		IEnvironmentResolver environmentResolver = new RuntimeEnvironmentResolver(context.getPlatform());
 
-		String progPath = "release" + File.separator + progName;
-		File dir = sourceDir;
-		if(targetDir != null)
-			dir = targetDir;	// shadow built
+		String progPath = progName;
+		if(context.getPlatform().isWindows(false))
+			progPath = "release" + File.separator + progName;
+		else if(context.getPlatform().isLinux(false))
+			progPath = "." + File.separator + progName;
+		else if(context.getPlatform().isMacosx(false))
+			progPath = "." + File.separator + progName;
 
 		List<String> command = new ArrayList<String>();
 		String commandExe = environmentResolver.resolveCommand(dir, progPath);
