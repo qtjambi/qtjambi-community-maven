@@ -24,27 +24,38 @@ import org.qtjambi.buildtool.maven.utils.Utils;
 
 public class Project {
 	private Context context;
-	private File toplevelDir;
-	private boolean weCreated;
+	private boolean errorState;
+	private File sourceDir;
+	private boolean weCreatedSourceDir;
+	private File targetDir;
+	private boolean weCreatedTargetDir;
 
 	public Project(Context context) {
 		this.context = context;
 	}
 
 	public boolean runQmake() {
+		if(errorState)
+			return false;
 		IEnvironmentResolver environmentResolver = context.getPlatform().getQtEnvironmentResolver();
 
 		String qtQmake = environmentResolver.resolveCommandMake();
 
 		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(toplevelDir, qtQmake);
+		String commandExe = environmentResolver.resolveCommand(sourceDir, qtQmake);
 		command.add(commandExe);
+		if(targetDir != null && sourceDir != null) {		// shadow build
+			command.add(sourceDir.getAbsolutePath());
+			//command.add(".." + File.separator + sourceDir.getName());
+		}
 		//for(Object o : args)
 		//	command.add(o.toString());
 		org.qtjambi.buildtool.maven.internal.ProcessBuilder processBuilder = new org.qtjambi.buildtool.maven.internal.ProcessBuilder(context.getLog(), command);
 
-		if(toplevelDir != null)
-			processBuilder.directory(toplevelDir);
+		if(targetDir != null)
+			processBuilder.directory(targetDir);
+		else if(sourceDir != null)
+			processBuilder.directory(sourceDir);
 
 		Map<String,String> env = processBuilder.environment();
 		environmentResolver.applyEnvironmentVariables(env);
@@ -52,27 +63,34 @@ public class Project {
 		Integer exitStatus;
 		try {
 			exitStatus = ProcessUtils.run(processBuilder);
+			if(exitStatus == null || exitStatus.intValue() != 0)
+				errorState = true;
 		} catch(Exception e) {
 			e.printStackTrace();
+			errorState = true;
 			return false;
 		}
 		return true;
 	}
 
 	public boolean runMake() {
+		if(errorState)
+			return false;
 		IEnvironmentResolver environmentResolver = context.getPlatform().environmentResolverWithToolchain();
 
 		String make = environmentResolver.resolveCommandMake();
 
 		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(toplevelDir, make);
+		String commandExe = environmentResolver.resolveCommand(sourceDir, make);
 		command.add(commandExe);
 		//for(Object o : args)
 		//	command.add(o.toString());
 		org.qtjambi.buildtool.maven.internal.ProcessBuilder processBuilder = new org.qtjambi.buildtool.maven.internal.ProcessBuilder(context.getLog(), command);
 
-		if(toplevelDir != null)
-			processBuilder.directory(toplevelDir);
+		if(targetDir != null)
+			processBuilder.directory(targetDir);
+		else if(sourceDir != null)
+			processBuilder.directory(sourceDir);
 
 		Map<String,String> env = processBuilder.environment();
 		environmentResolver.applyEnvironmentVariables(env);
@@ -80,27 +98,37 @@ public class Project {
 		Integer exitStatus;
 		try {
 			exitStatus = ProcessUtils.run(processBuilder);
+			if(exitStatus == null || exitStatus.intValue() != 0)
+				errorState = true;
 		} catch(Exception e) {
 			e.printStackTrace();
+			errorState = true;
 			return false;
 		}
 		return true;
 	}
 
 	public boolean runProjectProgram(String progName) {
+		if(errorState)
+			return false;
 		IEnvironmentResolver environmentResolver = new RuntimeEnvironmentResolver(context.getPlatform());
 
 		String progPath = "release" + File.separator + progName;
+		File dir = sourceDir;
+		if(targetDir != null)
+			dir = targetDir;	// shadow built
 
 		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(toplevelDir, progPath);
+		String commandExe = environmentResolver.resolveCommand(dir, progPath);
 		command.add(commandExe);
 		//for(Object o : args)
 		//	command.add(o.toString());
 		org.qtjambi.buildtool.maven.internal.ProcessBuilder processBuilder = new org.qtjambi.buildtool.maven.internal.ProcessBuilder(context.getLog(), command);
 
-		if(toplevelDir != null)
-			processBuilder.directory(toplevelDir);
+		if(targetDir != null)
+			processBuilder.directory(targetDir);
+		else if(sourceDir != null)
+			processBuilder.directory(sourceDir);
 
 		Map<String,String> env = processBuilder.environment();
 		environmentResolver.applyEnvironmentVariables(env);
@@ -108,22 +136,41 @@ public class Project {
 		Integer exitStatus;
 		try {
 			exitStatus = ProcessUtils.run(processBuilder);
+			if(exitStatus == null || exitStatus.intValue() != 0)
+				errorState = true;
 		} catch(Exception e) {
 			e.printStackTrace();
+			errorState = true;
 			return false;
 		}
 		return true;
 	}
 
 	public boolean cleanup() {
-		if(weCreated && toplevelDir != null) {
-			System.out.println("cleanup() " + toplevelDir.getAbsolutePath());
-			Utils.deleteRecursive(toplevelDir);
-			boolean bf = toplevelDir.delete();
-			System.out.println("cleanup() = " + bf);
-			toplevelDir = null;
+		if(weCreatedTargetDir && targetDir != null) {
+			System.out.println("cleanup() " + targetDir.getAbsolutePath());
+			Utils.deleteRecursive(targetDir);
+			boolean bf = targetDir.delete();
+			System.out.println("cleanup() = " + bf + "; targetDir");
+			targetDir = null;
+		}
+		if(weCreatedSourceDir && sourceDir != null) {
+			System.out.println("cleanup() " + sourceDir.getAbsolutePath());
+			Utils.deleteRecursive(sourceDir);
+			boolean bf = sourceDir.delete();
+			System.out.println("cleanup() = " + bf + "; sourceDir");
+			sourceDir = null;
 		}
 		return true;
+	}
+
+	public void reset() {
+		errorState = false;
+		// run "make distclean" ?
+		if(weCreatedTargetDir && targetDir != null) {
+			// Cleanup all the files under, but keep the targetDir itself
+			Utils.deleteRecursive(targetDir);
+		}
 	}
 
 	// FIXME unused
@@ -197,8 +244,8 @@ public class Project {
 			}
 		}
 
-		File myDir = createTemporaryDirectory();
-		if(myDir == null)
+		File sourceDir = createTemporaryDirectory(".src");
+		if(sourceDir == null)
 			return null;
 		//System.out.println("mkdir() = " + myDir.getAbsolutePath());
 		try {
@@ -230,14 +277,14 @@ public class Project {
 				// Ensure directory is created
 				File dir;
 				if(dirName != null) {
-					dir = new File(myDir, dirName);
+					dir = new File(sourceDir, dirName);
 					if(dir.isDirectory() == false) {
 						if(dir.mkdir() == false)
 							throw new RuntimeException("mkdir " + dir.getAbsolutePath() + "; failed");
 						//System.out.println("directoryCreated: " + dir.getAbsolutePath());
 					}
 				} else {
-					dir = myDir;
+					dir = sourceDir;
 				}
 
 				// We allow directory creation to happen with a trailing "/" in filelist.properties
@@ -286,14 +333,26 @@ public class Project {
 		} catch(Exception e) {
 			e.printStackTrace();
 			// Cleanup
-			Utils.deleteRecursive(myDir);
+			Utils.deleteRecursive(sourceDir);
+			return null;
+		}
+
+		File targetDir = createTemporaryDirectory(".tgt");
+		if(targetDir == null) {	// cleanup
+			Utils.deleteRecursive(sourceDir);
 			return null;
 		}
 
 		//System.out.println("project extracted: " + myDir.getAbsolutePath());
 		Project project = new Project(context);
-		project.toplevelDir = myDir;
-		project.weCreated = true;
+		if(targetDir != null) {
+			project.targetDir = targetDir;
+			project.weCreatedTargetDir = true;
+		}
+		if(sourceDir != null) {
+			project.sourceDir = sourceDir;
+			project.weCreatedSourceDir = true;
+		}
 		return project;
 	}
 
@@ -310,7 +369,7 @@ public class Project {
 		} finally {
 		}
 
-		File myDir = createTemporaryDirectory();
+		File myDir = createTemporaryDirectory(null);
 		if(myDir == null)
 			return null;
 		System.out.println("mkdir() = " + myDir.getAbsolutePath());
@@ -324,17 +383,18 @@ public class Project {
 		}
 
 		Project project = new Project(context);
-		project.toplevelDir = myDir;
-		project.weCreated = true;
+		project.sourceDir = myDir;
+		project.weCreatedSourceDir = true;
 		return project;
 	}
 
-	public static File createTemporaryDirectory() {
-		
+	public static File createTemporaryDirectory(String suffix) {
+		if(suffix == null)
+			suffix = ".dir";
 		//long id = Thread.currentThread().getId();	// Crappy Java APIs
 		Random random = new Random();
 		int randomId = random.nextInt(0x7fffffff);	// keep it positive
-		String dirname = "qtmvn" + Long.valueOf(randomId).toString() + ".dir";
+		String dirname = "qtmvn" + Long.valueOf(randomId).toString() + suffix;
 
 		String s = System.getProperty("java.io.tmpdir");
 		if(s != null) {

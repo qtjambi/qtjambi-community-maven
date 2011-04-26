@@ -79,7 +79,7 @@ public class DiagnosticMojo extends AbstractMojo {
 
 			// INCLUDE LIB LIBPATH 
 			if(k.equals("PATH")) {
-				String[] pathSplit = QmakeMojo.stringSplit(v, File.pathSeparator);
+				String[] pathSplit = Utils.stringSplit(v, File.pathSeparator);
 				final int len = k.length();
 				String spc = "";
 				for(int i = 0; i < len; i++)
@@ -238,6 +238,8 @@ public class DiagnosticMojo extends AbstractMojo {
 		Map<String,String> env = System.getenv();
 		environmentResolver.applyEnvironmentVariables(env);
 		String pathValue = env.get(DefaultEnvironmentResolver.K_PATH);
+		if(pathValue == null)
+			return;
 		String[] pathA = Utils.stringArraySplit(pathValue, File.pathSeparator);
 
 		for(String p : pathA) {

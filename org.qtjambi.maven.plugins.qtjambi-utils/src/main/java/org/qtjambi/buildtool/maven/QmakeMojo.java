@@ -7,13 +7,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.util.DirectoryScanner;
 import org.qtjambi.buildtool.maven.internal.ProcessBuilder;
+import org.qtjambi.buildtool.maven.utils.Utils;
 
 /**
  * 
@@ -39,14 +43,21 @@ public class QmakeMojo extends AbstractMojo {
 	private Map<String,String> environmentVariables;
 
 	/**
-	 * @parameter default-value="${outputDirectory}/src/main/native"
+	 * @parameter default-value="${basedir}/src/main/native"
 	 */
 	private String sourceDirectory;
 
 	/**
-	 * @parameter default-value="${outputDirectory}/target/main/native"
+	 * @required
+	 * @readonly
+	 * @parameter default-value="${project.build.outputDirectory}"
 	 */
-	private String outputDirectory;
+	private File outputDirectory;
+
+	/**
+	 * @parameter default-value="${project.build.directory}/generated-sources/qtjambi-maven-plugin"
+	 */
+	private String generatedSourcesDirectory;
 
 	/**
 	 * @parameter default-value="true"
@@ -64,20 +75,55 @@ public class QmakeMojo extends AbstractMojo {
 	private boolean verbose;
 
 	/**
+	 * @parameter
+	 */
+	private String qmakeArguments;
+
+	/**
 	 * @parameter expression="${project.properties}"
 	 */
 	private Map<String,String> projectProperties;
 
-	private boolean initDone;
+	/**
+	 * @parameter
+	 */
+	private Set<String> includes = new HashSet<String>();
 
+	/**
+	 * @parameter
+	 */
+	private Set<String> excludes = new HashSet<String>();
+
+	/**
+	 * Allow forcing of behavior based on a specific qmake version.
+	 * @parameter
+	 */
+	private String qmakeVersion;
+	// FIXME: Provide goal to test/check for mismatch.
+
+	private boolean initDone;
 	private String execSuffix = "";
 	private String K_bin_qmake;		// auto-filled by platform "bin/qmake"
-	private String qmakeVersion;
+
 
 	// Search sourceDirectory for *.pro files
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		init();
+
+		getLog().debug("testString=" + testString);
+		getLog().debug("qtDir=" + qtDir);
+		getLog().debug("environmentVariables=" + environmentVariables);
+		getLog().debug("sourceDirectory=" + sourceDirectory);
+		getLog().debug("outputDirectory=" + outputDirectory);
+		getLog().debug("debug=" + debug);
+		getLog().debug("optimize=" + optimize);
+		getLog().debug("verbose=" + verbose);
+		getLog().debug("qmakeArguments=" + qmakeArguments);
+		getLog().debug("projectProperties=" + projectProperties);
+		getLog().debug("includes=" + includes);
+		getLog().debug("excludes=" + excludes);
+
 		getLog().info(QmakeMojo.class.getName() + " QMAKE");
 		if(detectQmakeVersion() == false)
 			throw new MojoFailureException("Unable to detect qmake version");
@@ -91,26 +137,6 @@ public class QmakeMojo extends AbstractMojo {
 		if(o == null)
 			return null;
 		return o.toString();
-	}
-
-	/**
-	 * 
-	 * @param path "C:\foo;D:\bar"
-	 * @param pathSeparator "\"
-	 * @return new String[] { "C:\foo", "D:\bar" }
-	 */
-	public static String[] stringSplit(final String path, final String pathSeparator) {
-		// FIXME: Move to Util class
-		List<String> list = new ArrayList<String>();
-		int i = 0;
-		int idx;
-		while((idx = path.indexOf(pathSeparator, i)) >= 0) {
-			String s = path.substring(i, idx);
-			list.add(s);
-			idx += pathSeparator.length();
-			i = idx;
-		}
-		return list.toArray(new String[list.size()]);
 	}
 
 	/**
@@ -135,6 +161,25 @@ public class QmakeMojo extends AbstractMojo {
 		return path;
 	}
 
+	protected DirectoryScanner getDirectoryScanner() {
+		DirectoryScanner scanner = null;
+		scanner = new DirectoryScanner();
+		scanner.setFollowSymlinks(true);
+		scanner.setBasedir(sourceDirectory);
+
+		if(includes.isEmpty() && excludes.isEmpty()) {
+			return scanner;
+		} else {
+			if(includes.isEmpty()) {
+				includes.add( "**/*.pro" );
+			}
+			scanner.setIncludes(includes.toArray(new String[includes.size()]));
+			scanner.setExcludes(includes.toArray(new String[excludes.size()]));
+		}
+
+		return scanner;
+	}
+
 	private void init() {
 		if(initDone)
 			return;
@@ -155,7 +200,7 @@ public class QmakeMojo extends AbstractMojo {
 		getLog().info("sysprop:QTDIR=" + syspropQtdirString);
 		// Check qmake exists on path, if so go with $PATH / system defaults
 		String envvarPathString = System.getenv("PATH");
-		String[] pathSplit = stringSplit(envvarPathString, File.pathSeparator);
+		String[] pathSplit = Utils.stringSplit(envvarPathString, File.pathSeparator);
 		boolean first = true;
 		for(String p : pathSplit) {
 			if(first) {

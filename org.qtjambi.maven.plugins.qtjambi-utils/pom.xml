@@ -125,5 +125,15 @@
 			<artifactId>maven-plugin-api</artifactId>
 			<version>2.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-utils</artifactId>
+			<version>${version.org.codehaus.plexus.plexus-utils}</version>
+		</dependency>
+		<!-- <dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-compiler-manager</artifactId>
+			<version>${version.org.codehaus.plexus}</version>
+		</dependency> -->
 	</dependencies>
 </project>

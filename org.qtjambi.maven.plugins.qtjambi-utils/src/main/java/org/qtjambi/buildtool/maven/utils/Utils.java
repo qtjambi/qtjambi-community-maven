@@ -195,6 +195,25 @@ public abstract class Utils {
 		return sb.toString();
 	}
 
+	/**
+	 * 
+	 * @param path "C:\foo;D:\bar"
+	 * @param separator "\"
+	 * @return new String[] { "C:\foo", "D:\bar" }
+	 */
+	public static String[] stringSplit(final String path, final String separator) {
+		// FIXME: Move to Util class
+		List<String> list = new ArrayList<String>();
+		int i = 0;
+		int idx;
+		while((idx = path.indexOf(separator, i)) >= 0) {
+			String s = path.substring(i, idx);
+			list.add(s);
+			idx += separator.length();
+			i = idx;
+		}
+		return list.toArray(new String[list.size()]);
+	}
 
 	/**
 	 * Be careful using this.
@@ -206,8 +225,11 @@ public abstract class Utils {
 		String pathAsString = dir.getAbsolutePath();
 		if(pathAsString.length() == 0)
 			return false;
-		if(pathAsString.startsWith(File.separator) == false)
-			throw new RuntimeException("deleteRecursive(): " + dir.getAbsolutePath());
+		if(pathAsString.startsWith(File.separator) == false) {
+			// FIXME: Do platform check, startWith() for linux/macosx, driver letter check as well for windows
+			if(pathAsString.length() < 3 || (pathAsString.charAt(1) != ':' && pathAsString.charAt(2) != File.separatorChar))
+				throw new RuntimeException("deleteRecursive(): " + dir.getAbsolutePath());
+		}
 		{
 			int i, j;
 			i = pathAsString.indexOf(File.separator);
@@ -240,7 +262,7 @@ public abstract class Utils {
 		list.add(s);
 		return list;
 	}
-	
+
 	public static final String K_gcc 		= "gcc";
 	public static final String K_mingw 		= "mingw";
 	public static final String K_mingw_w64 	= "mingw_w64";	// prefered
