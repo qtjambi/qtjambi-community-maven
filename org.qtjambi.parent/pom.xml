@@ -67,5 +67,11 @@
 			<url>http://repository.qt-jambi.org/nexus/content/repositories/snapshots</url>
 			<snapshots><enabled>true</enabled></snapshots>
 		</pluginRepository>
+		<pluginRepository><!-- This is setup as maven-nar-plugin is not yet released and deployed to maven central repo -->
+			<id>com.github.duns.maven-snapshots</id>
+			<name>maven-nar-plugin Repository - Snapshots</name>
+			<url>http://duns.github.com/maven-snapshots</url>
+			<snapshots><enabled>true</enabled></snapshots>
+		</pluginRepository>
 	</pluginRepositories>
 </project>
