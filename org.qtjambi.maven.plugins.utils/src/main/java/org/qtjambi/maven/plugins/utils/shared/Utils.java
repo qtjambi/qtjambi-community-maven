@@ -1,10 +1,14 @@
 package org.qtjambi.maven.plugins.utils.shared;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.qtjambi.maven.plugins.utils.Toolchain;
 
 public abstract class Utils {
@@ -307,6 +311,82 @@ public abstract class Utils {
 			sb.append(o.toString());
 		}
 		sb.append("]");
+		return sb.toString();
+	}
+
+	/**
+	 * Removes trailing (and excessive trailing) directory separators.
+	 * @param path
+	 * @return
+	 */
+	public static String pathCanonTrailing(String path) {
+		final String fileSeparator = File.separator;
+		final int fileSeparatorLen = fileSeparator.length();
+		while(true) {
+			int len = path.length();
+			if(len >= fileSeparatorLen) {
+				String s = path.substring(len - fileSeparatorLen);
+				if(s.compareTo(fileSeparator) == 0) {
+					path = path.substring(0, len - fileSeparatorLen);
+					continue;		// try again
+				}
+			}
+			break;
+		}
+		return path;
+	}
+
+	/**
+	 * #stringReplaceShuffleChar("sub/dir/foo_bar__xyz.pro", '/', '_', 1) => "sub__dir__foo_bar___xyz.pro"
+	 * #stringReplaceShuffleChar("sub/dir/_foo_bar__xyz.pro", '/', '_', 1) => "sub__dir___foo_bar___xyz.pro"
+	 * #stringReplaceShuffleChar("sub/dir_/foo_bar__xyz.pro", '/', '_', 1) => "sub__dir___foo_bar___xyz.pro"
+	 * #stringReplaceShuffleChar("sub/dir_/_foo_bar__xyz.pro", '/', '_', 1) => "sub__dir____foo_bar___xyz.pro"
+	 * This is not designed to be reversible just one-way uniqueness.
+	 * @param s
+	 * @param rc		Replace character
+	 * @param sc		Substitute character
+	 * @param atPosition
+	 * @return
+	 */
+	public static String stringReplaceShuffleChar(String s, final char rc, final char sc, final int atPosition) {
+		final int sLen = s.length();
+		StringBuffer sb = new StringBuffer();
+		int contig = 0;
+		for(int i = 0; i < sLen; i++) {
+			char ch = s.charAt(i);
+			if(contig > 0) {
+				if(ch == sc) {
+					if(atPosition == contig)
+						sb.append(sc);
+					contig++;
+					sb.append(ch);
+				} else if(ch == rc) {
+					for(int j = 0; j < atPosition; j++)
+						sb.append(sc);
+					sb.append(sc);	// and one extra
+					contig = 0;
+					// drop 'ch'
+				} else {
+					contig = 0;
+					sb.append(ch);
+				}
+			} else {
+				if(ch == sc) {
+					if(atPosition == contig)
+						sb.append(sc);
+					contig++;
+					sb.append(ch);
+				} else if(ch == rc) {
+					for(int j = 0; j < atPosition; j++)
+						sb.append(sc);
+					sb.append(sc);	// and one extra
+					contig = 0;
+					// drop 'ch'
+				} else {
+					sb.append(ch);
+				}
+			}
+		}
 		return sb.toString();
 	}
 }

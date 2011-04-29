@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.qtjambi.maven.plugins.utils.Platform;
 import org.qtjambi.maven.plugins.utils.Toolchain;
@@ -15,6 +16,7 @@ import org.qtjambi.maven.plugins.utils.resolvers.GccEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.resolvers.JavaEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.resolvers.MingwEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.resolvers.MingwW64EnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.resolvers.MsvcEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.resolvers.QtEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
@@ -52,7 +54,7 @@ public class Arguments {
 	public static final String K_QTSDK_HOME			= "QTSDK_HOME";
 	public static final String K_MSVC_HOME			= "MSVC_HOME";
 	public static final String K_MINGW_HOME			= "MINGW_HOME";
-	public static final String K_MINGW_W64_HOME		= "MINGW_W64_HOME";		// prefered
+	public static final String K_MINGW_W64_HOME		= "MINGW_W64_HOME";		// preferred
 	public static final String K_MINGW__W64_HOME	= "MINGW-W64_HOME";
 	public static final String K_JAVA_HOME			= "JAVA_HOME";
 	public static final String K_JRE_HOME			= "JRE_HOME";
@@ -99,7 +101,7 @@ public class Arguments {
 		envvarJava = new HashMap<String, String>();
 	}
 
-	public void setup(Platform platform, Log log) {
+	public void setup(Platform platform, Log log) throws MojoFailureException {
 		String s;
 
 		if(qtPlatform == null) {
@@ -206,6 +208,7 @@ public class Arguments {
 
 			if(toolchain == null) {
 				// FIXME: This is a immediate failure error (we must pick something)
+				throw new MojoFailureException("unable to auto-detect toolchain set " + K_toolchain + " property parameter");
 			}
 			log.warn(K_toolchain + " auto-detect to " + Utils.toolchainToLabel(toolchain));
 		}
@@ -221,7 +224,7 @@ public class Arguments {
 			globalEnvironmentResolver.setEnvvarMap(envvarGlobal);
 		}
 		platform.setGlobalEnvironmentResolver(globalEnvironmentResolver);
-		
+
 		// JAVA
 		JavaEnvironmentResolver javaEnvironmentResolver = new JavaEnvironmentResolver(platform);
 		if(javaEnvironmentResolver instanceof DefaultEnvironmentResolver) {	// Globals
@@ -233,7 +236,7 @@ public class Arguments {
 		}
 		javaEnvironmentResolver.setEnvvarMap(envvarJava);
 		// FIXME CHECKME: autoConfigure?
-		platform.setGccEnvironmentResolver(javaEnvironmentResolver);
+		platform.setJavaEnvironmentResolver(javaEnvironmentResolver);
 
 		// GCC
 		GccEnvironmentResolver gccEnvironmentResolver = new GccEnvironmentResolver(platform);
@@ -275,6 +278,20 @@ public class Arguments {
 		if(mingwW64Home != null)
 			mingwW64EnvironmentResolver.setHome(mingwW64Home, true);
 		platform.setMingwW64EnvironmentResolver(mingwW64EnvironmentResolver);
+
+		// MSVC
+		MsvcEnvironmentResolver msvcEnvironmentResolver = new MsvcEnvironmentResolver(platform);
+		if(msvcEnvironmentResolver instanceof DefaultEnvironmentResolver) {	// Globals
+			DefaultEnvironmentResolver defaultEnvironmentResolver = (DefaultEnvironmentResolver) msvcEnvironmentResolver;
+			defaultEnvironmentResolver.setPathAppend(pathAppend);
+			defaultEnvironmentResolver.setLdLibraryPathAppend(ldLibraryPathAppend);
+			defaultEnvironmentResolver.setDyldLibraryPathAppend(dyldLibraryPathAppend);
+			defaultEnvironmentResolver.setEnvvarMap(envvarGlobal);
+		}
+		msvcEnvironmentResolver.setEnvvarMap(envvarMsvc);
+		if(msvcHome != null)
+			msvcEnvironmentResolver.setHome(msvcHome, true);
+		platform.setMsvcEnvironmentResolver(msvcEnvironmentResolver);
 
 		// QT
 		QtEnvironmentResolver qtEnvironmentResolver = new QtEnvironmentResolver(platform);
@@ -343,7 +360,7 @@ public class Arguments {
 	}
 
 
-	public void detect(Platform platform, Log log) {
+	public void detect(Platform platform, Log log) throws MojoFailureException {
 		String s;
 
 		setup(platform, log);

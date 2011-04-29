@@ -20,6 +20,7 @@ import java.util.jar.JarFile;
 
 import org.qtjambi.maven.plugins.utils.resolvers.RuntimeEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.shared.ProcessUtils;
+import org.qtjambi.maven.plugins.utils.shared.ProcessUtils.ProcessReturn;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 public class Project {
@@ -77,9 +78,12 @@ public class Project {
 
 		Integer exitStatus;
 		try {
-			exitStatus = ProcessUtils.run(processBuilder);
-			if(exitStatus == null || exitStatus.intValue() != 0)
+			ProcessReturn processReturn = ProcessUtils.run(processBuilder);
+			exitStatus = processReturn.exitStatus;
+			if(exitStatus == null || exitStatus.intValue() != 0) {
 				errorState = true;
+				return false;
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 			errorState = true;
@@ -113,9 +117,12 @@ public class Project {
 
 		Integer exitStatus;
 		try {
-			exitStatus = ProcessUtils.run(processBuilder);
-			if(exitStatus == null || exitStatus.intValue() != 0)
+			ProcessReturn processReturn = ProcessUtils.run(processBuilder);
+			exitStatus = processReturn.exitStatus;
+			if(exitStatus == null || exitStatus.intValue() != 0) {
 				errorState = true;
+				return false;
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 			errorState = true;
@@ -157,9 +164,12 @@ public class Project {
 
 		Integer exitStatus;
 		try {
-			exitStatus = ProcessUtils.run(processBuilder);
-			if(exitStatus == null || exitStatus.intValue() != 0)
+			ProcessReturn processReturn = ProcessUtils.run(processBuilder);
+			exitStatus = processReturn.exitStatus;
+			if(exitStatus == null || exitStatus.intValue() != 0) {
 				errorState = true;
+				return errorState;
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 			errorState = true;

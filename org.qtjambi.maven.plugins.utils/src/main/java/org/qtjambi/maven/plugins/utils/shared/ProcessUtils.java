@@ -10,7 +10,17 @@ import java.util.TreeMap;
 import org.qtjambi.maven.plugins.utils.internal.ProcessBuilder;
 
 public class ProcessUtils {
-	public static Integer run(ProcessBuilder processBuilder) {
+	public static class ProcessReturn {
+		public Integer exitStatus;
+		public String stderrString;
+		public String stdoutString;
+
+		public ProcessReturn(Integer exitStatus) {
+			this.exitStatus = exitStatus;
+		}
+	}
+
+	public static ProcessReturn run(ProcessBuilder processBuilder, Integer saveStream) {
 		if(processBuilder.getLog().isDebugEnabled()) {
 			List<String> command = processBuilder.command();
 			String[] commandA = command.toArray(new String[command.size()]);
@@ -56,6 +66,8 @@ public class ProcessUtils {
 			{
 				stderrStream = process.getErrorStream();
 				stderrReader = new StreamReaderThread(stderrStream);
+				if(saveStream != null)
+					stderrReader.saveStream(saveStream);
 
 				StringBuilder sb = new StringBuilder();
 				sb.append(processBuilder.getCommandExe());
@@ -69,6 +81,8 @@ public class ProcessUtils {
 			{
 				stdoutStream = process.getInputStream();
 				stdoutReader = new StreamReaderThread(stdoutStream);
+				if(saveStream != null)
+					stderrReader.saveStream(saveStream);
 
 				StringBuilder sb = new StringBuilder();
 				sb.append(processBuilder.getCommandExe());
@@ -94,7 +108,10 @@ public class ProcessUtils {
 			stderrThread.join();
 			stdoutThread.join();
 
-			return exitStatus;
+			ProcessReturn processReturn = new ProcessReturn(exitStatus);
+			processReturn.stdoutString = stdoutReader.getStreamAsString();
+			processReturn.stderrString = stderrReader.getStreamAsString();
+			return processReturn;
 		} catch(InterruptedException e) {
 			processBuilder.getLog().debug("  EXEC FAILURE EXCEPTION ", e);
 		} catch(IOException e) {
@@ -155,6 +172,10 @@ public class ProcessUtils {
 			}
 		}
 
-		return null;
+		return new ProcessReturn(null);
+	}
+
+	public static ProcessReturn run(ProcessBuilder processBuilder) {
+		return run(processBuilder, StreamReaderThread.DEFAULT_SAVED_VALUE);
 	}
 }

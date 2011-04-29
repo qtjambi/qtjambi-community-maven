@@ -26,6 +26,7 @@ import org.qtjambi.maven.plugins.utils.resolvers.GccEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.resolvers.JavaEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.resolvers.MingwEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.resolvers.MsvcEnvironmentResolver;
+import org.qtjambi.maven.plugins.utils.shared.QmakeUtils;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 /**
@@ -39,6 +40,11 @@ import org.qtjambi.maven.plugins.utils.shared.Utils;
  */
 public class DiagnosticMojo extends AbstractMojo {
 	private boolean initDone;
+
+	/**
+	 * @parameter expression="${project.properties}"
+	 */
+	private Map<String,String> projectProperties;
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		init();
@@ -145,6 +151,11 @@ public class DiagnosticMojo extends AbstractMojo {
 		// Phonon
 
 		// Qt SDK installation check
+		String qmakeVersion = qmakeVersionDetect(context);
+		if(qmakeVersion == null)
+			getLog().error(" QMAKE_VERSION=<unable_to_detect_version>");
+		else
+			getLog().info(" QMAKE_VERSION=" + qmakeVersion);
 
 		// Test build CPP application with QMAKE
 		// extract and build qt_test
@@ -167,6 +178,11 @@ public class DiagnosticMojo extends AbstractMojo {
 		// qdoc3 run test
 
 		//throw new MojoFailureException("Not Implemented");
+	}
+
+	private String qmakeVersionDetect(Context context) throws MojoFailureException {
+		QmakeUtils qmakeUtils = new QmakeUtils(context);
+		return qmakeUtils.getQmakeVersion();
 	}
 
 	private void pathCheck(Platform platform, String filename) {
@@ -451,5 +467,14 @@ public class DiagnosticMojo extends AbstractMojo {
 			}
 		}
 		return false;
+	}
+
+	private String getProjectProperty(String key) {
+		if(projectProperties == null)
+			return null;
+		Object o = projectProperties.get(key);
+		if(o == null)
+			return null;
+		return o.toString();
 	}
 }
