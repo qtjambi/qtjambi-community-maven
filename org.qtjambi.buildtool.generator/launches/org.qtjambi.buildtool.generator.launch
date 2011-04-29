@@ -15,7 +15,7 @@
 <listEntry value="cross_compile=x86_64-w64-mingw32-"/>
 <listEntry value="envvar.global.:TEST=foo"/>
 <listEntry value="path.append=-C:\Program Files (x86)\Common Files\Symbian\Tools"/>
-<listEntry value="toolchain=mingw"/>
+<listEntry value="toolchain=msvc"/>
 </listAttribute>
 <stringAttribute key="M2_RUNTIME" value="EMBEDDED"/>
 <booleanAttribute key="M2_SKIP_TESTS" value="false"/>

@@ -23,12 +23,13 @@
 			<directory>${project.basedir}</directory>
 			<outputDirectory>/</outputDirectory>
 			<includes>
-				<include>licenses/*</include>
+				<include>licenses/LICENSE.*</include>
+				<include>licenses/README.WIN32.MINGW.txt</include>
 			</includes>
 		</fileSet>
 		<fileSet>
 			<directory>${project.build.directory}</directory>
-			<outputDirectory>/lib</outputDirectory>
+			<outputDirectory>lib</outputDirectory>
 			<includes>
 				<include>qmake/generator.pro/debug/generator.exe</include>
 				<include>qmake/generator.pro/release/generator.exe</include>
@@ -36,7 +37,7 @@
 		</fileSet>
 		<fileSet>
 			<directory>${mingw.home}/bin</directory>
-			<outputDirectory>/lib</outputDirectory>
+			<outputDirectory>lib</outputDirectory>
 			<includes>
 				<include>libgcc*.dll</include>
 				<include>libstdc++*.dll</include>
@@ -45,7 +46,7 @@
 		</fileSet>
 		<fileSet>
 			<directory>${qtsdk.home}/lib</directory>
-			<outputDirectory>/lib</outputDirectory>
+			<outputDirectory>lib</outputDirectory>
 			<includes>
 				<include>QtCore4*.dll</include>
 				<include>QtXml4*.dll</include>
