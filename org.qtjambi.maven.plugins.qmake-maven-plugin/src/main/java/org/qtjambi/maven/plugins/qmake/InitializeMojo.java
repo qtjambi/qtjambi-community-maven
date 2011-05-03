@@ -14,28 +14,20 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.qtjambi.maven.plugins.utils.internal.ProcessBuilder;
+import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 /**
  * 
  * @goal initialize
+ * @execute lifecycle="qmake-lifecycle" phase="initialize"
  * @author <a href="mailto:darryl.miles@darrylmiles.org">Darryl L. Miles</a>
  *
  */
 public class InitializeMojo extends AbstractMojo {
 	/**
-	 * @parameter
-	 */
-	private String testString;
-
-	/**
-	 * @parameter
+	 * @parameter expression="${qtsdk.home}"
 	 */
 	private String qtDir;
-
-	/**
-	 * @parameter
-	 */
-	private Map<String,String> environmentVariables;
 
 	private boolean initDone;
 
@@ -45,7 +37,7 @@ public class InitializeMojo extends AbstractMojo {
 	private static Object qmakeSettings;
 
 	/**
-	 * @execute
+	 * 
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		init();
@@ -70,19 +62,7 @@ public class InitializeMojo extends AbstractMojo {
 			// Check qmake exists on path, if so go with $PATH / system defaults
 		} else {
 			// Remove trailing directory separator
-			final String fileSeparator = File.separator;
-			final int fileSeparatorLen = fileSeparator.length();
-			while(true) {
-				int len = qtDir.length();
-				if(len >= fileSeparatorLen) {
-					String s = qtDir.substring(len - fileSeparatorLen, fileSeparatorLen);
-					if(s.compareTo(fileSeparator) == 0) {
-						qtDir = qtDir.substring(0, len - fileSeparatorLen);
-						continue;		// try again
-					}
-				}
-				break;
-			}
+			qtDir = Utils.pathCanonTrailing(qtDir);
 		}
 
 		if(qtDir != null) {		// Check QTDIR exists (if set)
@@ -126,14 +106,14 @@ public class InitializeMojo extends AbstractMojo {
 			StringBuilder sb = new StringBuilder();
 			idx += propName.length();
 			while(idx < lineLen) {
-				char c = line.charAt(idx);
+				char c = line.charAt(idx++);
 				// Allow other whitespace to exist in the line
 				if(c == '\r' || c == '\n')
 					break;
 				sb.append(c);
 			}
 			if(sb.length() > 0)
-				sb.toString();
+				return sb.toString();
 		}
 		return null;
 	}

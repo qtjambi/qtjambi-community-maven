@@ -1,0 +1,25 @@
+<component-sets>
+  <components>
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>qmake</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <phases>
+          <validate>
+          org.qtjambi.maven.plugins:qmake-maven-plugin:validate
+          </validate>
+          <initialize>
+          org.qtjambi.maven.plugins:qmake-maven-plugin:initialize
+          </initialize>
+          <compile>
+          org.qtjambi.maven.plugins:qmake-maven-plugin:compile
+          </compile>
+          <test-compile>
+          org.qtjambi.maven.plugins:qmake-maven-plugin:testCompile
+          </test-compile>
+        </phases>
+      </configuration>
+    </component>
+  </components>
+</component-sets>
