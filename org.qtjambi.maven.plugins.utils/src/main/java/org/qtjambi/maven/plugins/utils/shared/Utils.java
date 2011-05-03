@@ -1,14 +1,10 @@
 package org.qtjambi.maven.plugins.utils.shared;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.qtjambi.maven.plugins.utils.Toolchain;
 
 public abstract class Utils {
@@ -322,6 +318,8 @@ public abstract class Utils {
 	}
 
 	public static String debugStringArrayPretty(Object[] oA) {
+		if(oA == null)
+			return "null";
 		StringBuffer sb = new StringBuffer();
 		sb.append("[");
 		boolean first = true;
