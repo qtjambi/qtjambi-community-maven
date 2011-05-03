@@ -229,6 +229,9 @@ namespace rpp {
                     } else if (*first == '\n') {
                         // ### compress the line
                         *result++ = *first++;
+//                        *result = (const char &)*first;
+//                        result++;
+//                        first++;	// Do as separate expression, MSVC2010
                         ++env.current_line;
                     } else if (skipping()) {
                         first = skip(first, last);
@@ -294,7 +297,7 @@ namespace rpp {
                 }
                 file.close();
                 std::fclose(fp);
-                this->operator()(data.data(), data.data() + data.size(), result);
+                this->operator()((const char *)data.constData(), (const char *)(data.constData() + data.size()), result);
                 /*
                  * NOTE: the code is commented out for it seems to have some problems...
                  * Too lazy to fix it, so now there is Qt based solution for it

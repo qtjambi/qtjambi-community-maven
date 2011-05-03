@@ -21,6 +21,10 @@ win32-msvc2005:{
         QMAKE_CXXFLAGS += -wd4996
         QMAKE_CFLAGS += -wd4996
 }
+win32-msvc2010:{
+        QMAKE_CXXFLAGS += -wd4996
+        QMAKE_CFLAGS += -wd4996
+}
 
 # Input
 HEADERS += \
