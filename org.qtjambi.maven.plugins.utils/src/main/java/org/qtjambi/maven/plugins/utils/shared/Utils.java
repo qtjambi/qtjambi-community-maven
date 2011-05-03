@@ -21,7 +21,16 @@ public abstract class Utils {
 			list.add(oneValue);
 			fromIndex = i + 1;
 		}
+		int rem = value.length() - fromIndex;
+		if(rem > 0)
+			list.add(value.substring(fromIndex));
 		return list.toArray(new String[list.size()]);
+	}
+
+	public static String[] safeStringArraySplit(String value, String str) {
+		if(value == null)
+			return null;
+		return stringArraySplit(value, str);
 	}
 
 	public static String[] stringArrayRemove(String[] valueA, String str) {
@@ -58,12 +67,24 @@ public abstract class Utils {
 		return newValueA;
 	}
 
+	public static String[] safeStringArrayPrepend(String[] valueA, String str) {
+		if(valueA != null)
+			return stringArrayPrepend(valueA, str);
+		return new String[] { str };
+	}
+
 	public static String[] stringArrayAppend(String[] valueA, String str) {
 		final int srcLength = valueA.length;
 		String[] newValueA = new String[srcLength + 1];
 		System.arraycopy(valueA, 0, newValueA, 0, srcLength);
 		newValueA[srcLength] = str;
 		return newValueA;
+	}
+
+	public static String[] safeStringArrayAppend(String[] valueA, String str) {
+		if(valueA != null)
+			return stringArrayAppend(valueA, str);
+		return new String[] { str };
 	}
 
 	public static int countLeadingDigits(String s) {
@@ -160,8 +181,9 @@ public abstract class Utils {
 				} else if(c == '[') {		// prepend always (with File.pathSeparator)
 					s = s.substring(1);		// remove prefix character
 					valueA = Utils.stringArrayPrepend(valueA, s);
-				} else /*if(c == '+')*/ {	// append always (like default)
-					s = s.substring(1);		// remove prefix character
+				} else {	// append always (like default)
+					if(c == '+')
+						s = s.substring(1);		// remove prefix character
 					valueA = Utils.stringArrayAppend(valueA, s);
 				}
 			} else {
@@ -388,5 +410,34 @@ public abstract class Utils {
 			}
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Search for an existing file that is executable in the envvarPath spec.
+	 * @param envvarPath
+	 * @param relExePath
+	 * @return
+	 */
+	public static String searchPath(String envvarPath, String relExePath) {
+		String[] envvarPathA = new String[0];
+		if(envvarPath != null)
+			envvarPathA = Utils.stringArraySplit(envvarPath, File.pathSeparator);
+		for(String s : envvarPathA) {
+			File file = new File(s, relExePath);
+			if(file.exists() && file.isFile() && file.canExecute())
+				return file.getAbsolutePath();
+		}
+		return null;
+	}
+
+	public static String safeStringPathAppend(String pathString, String s) {
+		if(pathString != null) {
+			String[] pathA = stringArraySplit(pathString, File.pathSeparator);
+			pathA = stringArrayAppend(pathA, s);
+			pathString = stringConcat(pathA, File.pathSeparator);
+		} else {
+			return s;
+		}
+		return pathString;
 	}
 }

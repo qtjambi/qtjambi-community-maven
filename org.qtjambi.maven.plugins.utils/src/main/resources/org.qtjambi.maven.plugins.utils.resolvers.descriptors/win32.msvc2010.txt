@@ -1,0 +1,54 @@
+#
+# FIXME: This isn't currently used, but describes the necessary environment changes
+#  needed to perform building from Java without presuming vcvars32.bat is run first.
+# @NoValidatePath - Don't check if the path we are adding exists (may wish to warn
+#  by default when adding paths that don't exist, this can help spot obvious problems).
+# @EnvNoExport - Keep this internally, don't export value to child process, this
+#  also means we MUST always resolve the value before starting the child process.
+# @EnvExport - Export this to child process
+# @EnvPathAppend - Items below are in PATH separated syntax, so append to any existing
+#  envvar using the platform scheme (or create variable if it does not exist).
+# @EnvSet - Overwrite the value exactly (this is the default)
+# @EnvPathAppendMargeUnique - like @EndPathAppend except if an individual element
+#  already exists don't append it again.
+[DirextX]
+@EnvNoExport
+DX_HOME=C:\DirectX SDK
+@EnvExport
+@EnvPathAppend
+LIB=%DX_HOME%\Lib\x86
+INCLUDE=%DX_HOME%\Include
+
+[PSDK]
+@EnvExport
+WindowsSdkDir=C:\Windows 7.1 SDK
+@EnvPathAppend
+PATH=%WindowsSdkDir%\Bin
+LIB=%WindowsSdkDir%\Lib
+INCLUDE=%WindowsSdkDir%\Include
+@EnvSet
+TARGET_CPU=x86
+
+[MSVC2010]
+@EnvNoExport
+MSVC2010_HOME=%ProgramFiles%\Microsoft Visual Studio 10.0
+@EnvExport
+@EnvSet
+VSINSTALLDIR=%DEV%\MSVC
+VCINSTALLDIR=%DEV%\MSVC\VC
+DevEnvDir=%VSINSTALLDIR%\Common7\IDE
+@EnvPathAppend
+PATH=%VCINSTALLDIR%\bin;%VSINSTALLDIR%\Common7\Tools;%VSINSTALLDIR%\Common7\IDE;%VCINSTALLDIR%\VCPackages
+INCLUDE=%VCINSTALLDIR%\include
+LIB=%VCINSTALLDIR%\lib
+LIBPATH=%VCINSTALLDIR%\lib
+
+[DotNET]
+@EnvExport
+FrameworkVersion=v4.0.30319
+Framework35Version=v3.5
+FrameworkDir=%SystemRoot%\Microsoft.NET\Framework
+@EnvPathAppend
+LIBPATH=%FrameworkDir%\%FrameworkVersion%;%FrameworkDir%\%Framework35Version%
+@EnvPathAppendMergeUnique
+PATH=%LIBPATH%

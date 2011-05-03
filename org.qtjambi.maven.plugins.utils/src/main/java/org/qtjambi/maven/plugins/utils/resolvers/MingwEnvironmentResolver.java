@@ -50,6 +50,11 @@ public class MingwEnvironmentResolver extends DefaultEnvironmentResolver impleme
 	}
 
 	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
+		// Make it non-virtual
+		applyEnvironmentVariablesNoParent(envvar, this);
+	}
+
+	private void applyEnvironmentVariablesNoParent(Map<String, String> envvar, MingwEnvironmentResolver uniqueSignature) {
 		if(envvarMap != null)
 			Utils.applyEnvVarMap(envvar, envvarMap);
 

@@ -75,6 +75,11 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 	}
 
 	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
+		// Make it non-virtual
+		applyEnvironmentVariablesNoParent(envvar, this);
+	}
+
+	private void applyEnvironmentVariablesNoParent(Map<String, String> envvar, QtEnvironmentResolver uniqueSignature) {
 		if(envvarMap != null)
 			Utils.applyEnvVarMap(envvar, envvarMap);
 

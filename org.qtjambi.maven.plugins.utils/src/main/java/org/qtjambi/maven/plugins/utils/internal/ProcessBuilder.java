@@ -11,27 +11,30 @@ public class ProcessBuilder {
 	private java.lang.ProcessBuilder processBuilder;
 
 	private Log log;
-	private String commandExe;
+	private String[] commandA;
+	private boolean initCommand;
 
 	public ProcessBuilder(Log log, List<String> command) {
-		this.commandExe = command.get(0);
-		this.processBuilder = new java.lang.ProcessBuilder(command);
+		this.processBuilder = new java.lang.ProcessBuilder();
 		this.log = log;
+		command(command);
 	}
 	public ProcessBuilder(Log log, String... command) {
-		this.commandExe = command[0];
-		this.processBuilder = new java.lang.ProcessBuilder(command);
+		this.processBuilder = new java.lang.ProcessBuilder();
 		this.log = log;
+		command(command);
 	}
 	public ProcessBuilder(Log log) {
 		this.processBuilder = new java.lang.ProcessBuilder();
 		this.log = log;
 	}
 	public ProcessBuilder(List<String> command) {
-		this.processBuilder = new java.lang.ProcessBuilder(command);
+		this.processBuilder = new java.lang.ProcessBuilder();
+		command(command);
 	}
 	public ProcessBuilder(String... command) {
-		this.processBuilder = new java.lang.ProcessBuilder(command);
+		this.processBuilder = new java.lang.ProcessBuilder();
+		command(command);
 	}
 	public ProcessBuilder() {
 		this.processBuilder = new java.lang.ProcessBuilder();
@@ -41,7 +44,9 @@ public class ProcessBuilder {
 		return this.log;
 	}
 	public String getCommandExe() {
-		return this.commandExe;
+		if(this.commandA == null || this.commandA.length == 0)
+			return null;
+		return this.commandA[0];
 	}
 
 	public int hashCode() {
@@ -53,12 +58,17 @@ public class ProcessBuilder {
 	}
 
 	public java.lang.ProcessBuilder command(List<String> command) {
-		commandExe = command.get(0);
+		final int len = command.size();
+		commandA = command.toArray(new String[len]);
+		initCommand = true;
 		return processBuilder.command(command);
 	}
 
 	public java.lang.ProcessBuilder command(String... command) {
-		commandExe = command[0];
+		final int len = command.length;
+		commandA = new String[len];
+		System.arraycopy(command, 0, this.commandA, 0, len);
+		initCommand = true;
 		return processBuilder.command(command);
 	}
 
@@ -91,6 +101,8 @@ public class ProcessBuilder {
 	}
 
 	public Process start() throws IOException {
+		if(!initCommand && commandA != null)
+			processBuilder.command(commandA);
 		return processBuilder.start();
 	}
 }

@@ -30,11 +30,14 @@ public class DefaultEnvironmentResolver implements IEnvironmentResolver {
 	}
 
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
-		//super.applyEnvironmentVariables(envvar);
-		applyEnvironmentVariablesNoParent(envvar);
+		applyEnvironmentVariablesNoParentPrivate(envvar);
 	}
 
 	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
+		applyEnvironmentVariablesNoParentPrivate(envvar);
+	}
+
+	private void applyEnvironmentVariablesNoParentPrivate(Map<String, String> envvar) {
 		if(envvarMap != null)
 			Utils.applyEnvVarMap(envvar, envvarMap);
 

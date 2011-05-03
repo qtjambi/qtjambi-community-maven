@@ -37,6 +37,11 @@ public class JavaEnvironmentResolver extends DefaultEnvironmentResolver implemen
 	}
 
 	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
+		// Make it non-virtual
+		applyEnvironmentVariablesNoParent(envvar, this);
+	}
+
+	private void applyEnvironmentVariablesNoParent(Map<String, String> envvar, JavaEnvironmentResolver uniqueSignature) {
 		if(envvarMap != null)
 			Utils.applyEnvVarMap(envvar, envvarMap);
 

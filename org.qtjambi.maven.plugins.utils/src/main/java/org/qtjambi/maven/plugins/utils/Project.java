@@ -18,6 +18,7 @@ import java.util.Random;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.qtjambi.maven.plugins.utils.resolvers.DefaultEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.resolvers.RuntimeEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.shared.ProcessUtils;
 import org.qtjambi.maven.plugins.utils.shared.ProcessUtils.ProcessReturn;
@@ -40,41 +41,44 @@ public class Project {
 	public boolean runQmake(File[] files) {
 		if(errorState)
 			return false;
-		IEnvironmentResolver environmentResolver = context.getPlatform().getQtEnvironmentResolver();
+		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog());
 
+		IEnvironmentResolver environmentResolver = context.getPlatform().getQtEnvironmentResolver();
 		String qtQmake = environmentResolver.resolveCommandMake();
 
-		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(sourceDir, qtQmake);
-		command.add(commandExe);
-		if(qmakeArguments != null) {
-			for(String s : qmakeArguments)
-				command.add(s);
-		}
-		if(qmakeDebugLevel > 0) {
-			for(int i = 0; i < qmakeDebugLevel; i++)
-				command.add("-d");
-		}
-		if(files == null) {
-			if(targetDir != null && sourceDir != null) {		// shadow build, search sourceDir
-				command.add(sourceDir.getAbsolutePath());
-				//command.add(".." + File.separator + sourceDir.getName());
+		Map<String,String> env = processBuilder.environment();
+		environmentResolver.applyEnvironmentVariables(env);
+
+		{
+			List<String> command = new ArrayList<String>();
+			String commandExe = environmentResolver.resolveCommand(sourceDir, qtQmake);
+			commandExe = resolveAbsolutePath(env, commandExe);
+			command.add(commandExe);
+
+			if(qmakeArguments != null) {
+				for(String s : qmakeArguments)
+					command.add(s);
 			}
-		} else {
-			for(File f : files)
-				command.add(f.getAbsolutePath());
+			if(qmakeDebugLevel > 0) {
+				for(int i = 0; i < qmakeDebugLevel; i++)
+					command.add("-d");
+			}
+			if(files == null) {
+				if(targetDir != null && sourceDir != null) {		// shadow build, search sourceDir
+					command.add(sourceDir.getAbsolutePath());
+					//command.add(".." + File.separator + sourceDir.getName());
+				}
+			} else {
+				for(File f : files)
+					command.add(f.getAbsolutePath());
+			}
+			processBuilder.command(command);
 		}
-		//for(Object o : args)
-		//	command.add(o.toString());
-		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog(), command);
 
 		if(targetDir != null)
 			processBuilder.directory(targetDir);
 		else if(sourceDir != null)
 			processBuilder.directory(sourceDir);
-
-		Map<String,String> env = processBuilder.environment();
-		environmentResolver.applyEnvironmentVariables(env);
 
 		Integer exitStatus;
 		try {
@@ -96,24 +100,28 @@ public class Project {
 	public boolean runMake() {
 		if(errorState)
 			return false;
-		IEnvironmentResolver environmentResolver = context.getPlatform().environmentResolverWithToolchain();
 
+		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog());
+
+		IEnvironmentResolver environmentResolver = context.getPlatform().environmentResolverWithToolchain();
 		String make = environmentResolver.resolveCommandMake();
 
-		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(sourceDir, make);
-		command.add(commandExe);
-		//for(Object o : args)
-		//	command.add(o.toString());
-		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog(), command);
+		Map<String,String> env = processBuilder.environment();
+		environmentResolver.applyEnvironmentVariables(env);
+
+		{
+			List<String> command = new ArrayList<String>();
+			String commandExe = environmentResolver.resolveCommand(sourceDir, make);
+			commandExe = resolveAbsolutePath(env, commandExe);
+			command.add(commandExe);
+
+			processBuilder.command(command);
+		}
 
 		if(targetDir != null)
 			processBuilder.directory(targetDir);
 		else if(sourceDir != null)
 			processBuilder.directory(sourceDir);
-
-		Map<String,String> env = processBuilder.environment();
-		environmentResolver.applyEnvironmentVariables(env);
 
 		Integer exitStatus;
 		try {
@@ -134,33 +142,38 @@ public class Project {
 	public boolean runProjectProgram(String progName) {
 		if(errorState)
 			return false;
+		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog());
+
 		IEnvironmentResolver environmentResolver = new RuntimeEnvironmentResolver(context.getPlatform());
 
-		String progPath = progName;
-		if(context.getPlatform().isWindows(false))
-			progPath = "release" + File.separator + progName;
-		else if(context.getPlatform().isLinux(false))
-			progPath = "." + File.separator + progName;
-		else if(context.getPlatform().isMacosx(false))
-			progPath = "." + File.separator + progName;
+		Map<String,String> env = processBuilder.environment();
+		environmentResolver.applyEnvironmentVariables(env);
 
-		File dir = sourceDir;
-		if(targetDir != null)
-			dir = targetDir;
-		List<String> command = new ArrayList<String>();
-		String commandExe = environmentResolver.resolveCommand(dir, progPath);
-		command.add(commandExe);
-		//for(Object o : args)
-		//	command.add(o.toString());
-		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog(), command);
+		{
+			String progPath = progName;
+			if(context.getPlatform().isWindows(false))
+				progPath = "release" + File.separator + progName;
+			else if(context.getPlatform().isLinux(false))
+				progPath = "." + File.separator + progName;
+			else if(context.getPlatform().isMacosx(false))
+				progPath = "." + File.separator + progName;
+
+			File dir = sourceDir;
+			if(targetDir != null)
+				dir = targetDir;
+
+			List<String> command = new ArrayList<String>();
+			String commandExe = environmentResolver.resolveCommand(dir, progPath);
+			commandExe = resolveAbsolutePath(env, commandExe);
+			command.add(commandExe);
+
+			processBuilder.command(command);
+		}
 
 		if(targetDir != null)
 			processBuilder.directory(targetDir);
 		else if(sourceDir != null)
 			processBuilder.directory(sourceDir);
-
-		Map<String,String> env = processBuilder.environment();
-		environmentResolver.applyEnvironmentVariables(env);
 
 		Integer exitStatus;
 		try {
@@ -474,5 +487,18 @@ public class Project {
 			}
 		}
 		return null;
+	}
+
+	// On windows at least the EXE to run but be specified as an absolute path
+	private String resolveAbsolutePath(Map<String,String> env, String commandExe) {
+		if(commandExe.indexOf(File.separatorChar) < 0) {
+			String envvarPath = env.get(DefaultEnvironmentResolver.K_PATH);
+			String newCommandExe = Utils.searchPath(envvarPath, commandExe);
+			if(newCommandExe != null) {
+				context.getLog().debug("SEARCH: " + newCommandExe);
+				commandExe = newCommandExe;
+			}
+		}
+		return commandExe;
 	}
 }

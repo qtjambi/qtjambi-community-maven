@@ -134,7 +134,7 @@ public class Platform {
 	public boolean isMacosx(boolean andUnsure) {
 		if(osName == null)
 			return andUnsure;
-		if(osName.startsWith("Macosx"))	// CHECKME FIXME
+		if(osName.startsWith("mac os x") || osName.startsWith("Macosx"))	// CHECKME FIXME
 			return true;
 		return false;
 	}

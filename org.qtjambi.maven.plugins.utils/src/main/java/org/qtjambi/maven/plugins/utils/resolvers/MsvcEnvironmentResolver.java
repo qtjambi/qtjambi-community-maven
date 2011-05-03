@@ -2,29 +2,38 @@ package org.qtjambi.maven.plugins.utils.resolvers;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.qtjambi.maven.plugins.utils.IEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.Platform;
+import org.qtjambi.maven.plugins.utils.envvar.EnvironmentEditor;
+import org.qtjambi.maven.plugins.utils.envvar.EnvironmentPathEditor;
+import org.qtjambi.maven.plugins.utils.envvar.OpPathAppend;
+import org.qtjambi.maven.plugins.utils.envvar.OpPathPrepend;
+import org.qtjambi.maven.plugins.utils.envvar.OpSet;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 public class MsvcEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
 	public static final String K_nmake = "nmake";
 
+	public static final String K_INCLUDE		= "INCLUDE";
+	public static final String K_LIBPATH		= "LIBPATH";
+	public static final String K_LIB			= "LIB";
+	public static final String K_WindowsSdkDir	= "WindowsSdkDir";
+
 	private String home;
 	private Map<String,String> commandMap;
 	private String commandMake;
 
-	private List<String> pathAppend;
-	private List<String> ldLibraryPathAppend;
-	private List<String> dyldLibraryPathAppend;
-	private Map<String,String> envvarMap;
+	private EnvironmentPathEditor pathEditor;
+	private EnvironmentEditor envvarEditor;
 
 	public MsvcEnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
 		commandMake = K_nmake;
+		pathEditor = new EnvironmentPathEditor();
+		envvarEditor = new EnvironmentEditor();
 	}
 
 	public void setHome(String home, boolean autoConfigure) {
@@ -82,21 +91,80 @@ public class MsvcEnvironmentResolver extends DefaultEnvironmentResolver implemen
 
 			File dirHome = new File(home);
 			if(dirHome.exists() && dirHome.isDirectory()) {
-				File dirHomeLib = new File(home, "lib");
-				if(dirHomeLib.exists() && dirHomeLib.isDirectory()) {
-					if(platform.isWindows(false))
-						pathAppend = Utils.safeListStringAppend(pathAppend, "<" + dirHomeLib.getAbsolutePath());	// prepend
-					if(platform.isLinux(false))
-						ldLibraryPathAppend = Utils.safeListStringAppend(ldLibraryPathAppend, "<" + dirHomeLib.getAbsolutePath());	// prepend
-					if(platform.isMacosx(false))
-						dyldLibraryPathAppend = Utils.safeListStringAppend(dyldLibraryPathAppend, "<" + dirHomeLib.getAbsolutePath());	// prepend
+				// VSINSTALLDIR=%MSVC_HOME%
+				File dirHomeVsInstallDir = dirHome;
+				if(dirHomeVsInstallDir.exists() && dirHomeVsInstallDir.isDirectory())
+					envvarEditor.add("VSINSTALLDIR", new OpSet(dirHomeVsInstallDir.getAbsolutePath()));
+
+				// VCINSTALLDIR=%MSVC_HOME%\VC
+				File dirHomeVcInstallDir = new File(dirHome, "VC");
+				if(dirHomeVcInstallDir.exists() && dirHomeVcInstallDir.isDirectory())
+					envvarEditor.add("VCINSTALLDIR", new OpSet(dirHomeVcInstallDir.getAbsolutePath()));
+
+				// DevEnvDir=%VSINSTALLDIR%\Common7\IDE
+				File dirHomeDevEnvDir = new File(dirHomeVsInstallDir, "Common7\\IDE");
+				if(dirHomeDevEnvDir.exists() && dirHomeDevEnvDir.isDirectory())
+					envvarEditor.add("DevEnvDir", new OpSet(dirHomeDevEnvDir.getAbsolutePath()));
+
+				// PATH=%VCINSTALLDIR%\bin;%VSINSTALLDIR%\Common7\Tools;%VSINSTALLDIR%\Common7\IDE;%VCINSTALLDIR%\VCPackages
+				File dirHomeBin = new File(dirHomeVcInstallDir, "bin");
+				if(dirHomeBin.exists() && dirHomeBin.isDirectory())
+					pathEditor.add(new OpPathAppend(dirHomeBin.getAbsolutePath()));
+				File dirHomeCommon7Tools = new File(dirHomeVsInstallDir, "Common7\\Tools");
+				if(dirHomeCommon7Tools.exists() && dirHomeCommon7Tools.isDirectory())
+					pathEditor.add(new OpPathAppend(dirHomeCommon7Tools.getAbsolutePath()));
+				File dirHomeCommon7Ide = new File(dirHomeVsInstallDir, "Common7\\IDE");
+				if(dirHomeCommon7Ide.exists() && dirHomeCommon7Ide.isDirectory())
+					pathEditor.add(new OpPathAppend(dirHomeCommon7Ide.getAbsolutePath()));
+				File dirHomeVcPackages = new File(dirHomeVcInstallDir, "VCPackages");
+				if(dirHomeVcPackages.exists() && dirHomeVcPackages.isDirectory())
+					pathEditor.add(new OpPathAppend(dirHomeVcPackages.getAbsolutePath()));
+
+				{
+					// INCLUDE=%VCINSTALLDIR%\include
+					File dirInclude = new File(dirHomeVcInstallDir, "include");
+					if(dirInclude.exists() && dirInclude.isDirectory())
+						envvarEditor.add(K_INCLUDE, new OpPathAppend(dirInclude.getAbsolutePath()));
 				}
 
-				File dirHomeBin = new File(home, "VC\\bin");
-				if(dirHomeBin.exists() && dirHomeBin.isDirectory()) {
-					pathAppend = Utils.safeListStringAppend(pathAppend, "<" + dirHomeBin.getAbsolutePath());	// prepend
+				{
+					// LIB=%VCINSTALLDIR%\lib
+					File dirLib = new File(dirHomeVcInstallDir, "lib");
+					if(dirLib.exists() && dirLib.isDirectory())
+						envvarEditor.add(K_LIB, new OpPathAppend(dirLib.getAbsolutePath()));
 				}
+
+				{
+					// LIBPATH=%VCINSTALLDIR%\lib
+					File dirLibpath = new File(dirHomeVcInstallDir, "lib");
+					if(dirLibpath.exists() && dirLibpath.isDirectory())
+						envvarEditor.add(K_LIBPATH, new OpPathAppend(dirLibpath.getAbsolutePath()));
+				}
+
 			}
+
+			File microsoftSdks = new File(programFilesX86, "Microsoft SDKs\\Windows\\v7.0A");
+			// MSVC2008 v7.0
+			// MSVC2010 v7.0A
+			if(microsoftSdks.exists() && microsoftSdks.isDirectory()) {
+				envvarEditor.add(K_WindowsSdkDir, new OpSet(microsoftSdks.getAbsolutePath()));
+
+				// PATH=%WindowsSdkDir%\bin
+				File sdkBin = new File(microsoftSdks, "bin");
+				if(sdkBin.exists() && sdkBin.isDirectory())
+					pathEditor.add(new OpPathAppend(sdkBin.getAbsolutePath()));
+
+				// INCLUDE=%WindowsSdkDir%\include
+				File sdkInclude = new File(microsoftSdks, "include");
+				if(sdkInclude.exists() && sdkInclude.isDirectory())
+					envvarEditor.add(K_INCLUDE, new OpPathAppend(sdkInclude.getAbsolutePath()));
+
+				// LIB=%WindowsSdkDir%\lib
+				File sdkLib = new File(microsoftSdks, "lib");
+				if(sdkLib.exists() && sdkLib.isDirectory())
+					envvarEditor.add(K_LIB, new OpPathAppend(sdkLib.getAbsolutePath()));
+			}
+
 			// envvarMap
 			//  unset QTDIR
 			//  unset QTINC
@@ -106,25 +174,19 @@ public class MsvcEnvironmentResolver extends DefaultEnvironmentResolver implemen
 		}
 	}
 
+	@Override
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
 		super.applyEnvironmentVariables(envvar);
 		applyEnvironmentVariablesNoParent(envvar);
 	}
 
+	@Override
 	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
-		if(envvarMap != null)
-			Utils.applyEnvVarMap(envvar, envvarMap);
-
-		if(pathAppend != null)
-			Utils.applyEnvVarPath(envvar, K_PATH, pathAppend);
-
-		if(ldLibraryPathAppend != null)
-			Utils.applyEnvVarPath(envvar, K_LD_LIBRARY_PATH, ldLibraryPathAppend);
-
-		if(dyldLibraryPathAppend != null)
-			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
+		envvarEditor.apply(envvar);
+		pathEditor.apply(envvar, K_PATH);
 	}
 
+	@Override
 	public String resolveCommandMake() {
 		return commandMake;
 	}
