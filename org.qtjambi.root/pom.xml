@@ -97,9 +97,16 @@
 			<name>QtJambi Maven Repository - Snapshots</name>
 			<url>http://repository.qt-jambi.org/nexus/content/repositories/snapshots</url>
 		</snapshotRepository>
+		<site>
+			<id>qtjambi.org.website</id>
+			<name>QtJambi Website</name>
+			<url>http://qt-jambi.org/site</url>
+		</site>
+		<downloadUrl>http://qt-jambi.org/download</downloadUrl>
 	</distributionManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<version.net.sf.qtjambi>4.5.2_01</version.net.sf.qtjambi><!-- LEGACY REMOVE ME --><!-- 4.6.3.2 -->
 		<version.org.apache.maven.maven-plugin-api>2.0</version.org.apache.maven.maven-plugin-api>
 		<version.org.qtjambi.buildtools.ant>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.ant>
 		<version.org.qtjambi.buildtools.generator>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.generator>
