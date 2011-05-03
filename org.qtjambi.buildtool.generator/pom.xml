@@ -60,12 +60,23 @@
 				<artifactId>qmake-maven-plugin</artifactId>
 				<version>${version.org.qtjambi.maven.plugins.qmake-maven-plugin}</version>
 				<configuration>
-					<testString>Test String Hello</testString>
-					<qtDir>${project.qtdir}</qtDir>
 					<includes>
 						<include>generator.pro</include>
 					</includes>
 				</configuration>
+<!-- 				<executions>
+
+<execution>
+            <id></id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <inherited>false</inherited>
+            <configuration>
+            </configuration>
+          </execution>
+				</executions>  -->
 			</plugin>
 			<!-- <plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -100,7 +111,7 @@
 							<goal>nar-download</goal>
 							<goal>nar-unpack</goal> -->
 							<goal>nar-package</goal>
-							<goal>nar-assembly</goal>
+							<!-- <goal>nar-assembly</goal> --><!-- Throws exception -->
 						</goals>
 					</execution>
 				</executions>
