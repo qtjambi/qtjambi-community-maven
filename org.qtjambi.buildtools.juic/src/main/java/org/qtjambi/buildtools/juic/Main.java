@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.juic;
+package org.qtjambi.buildtools.juic;
 
 public class Main {
 	// src/main/qmake/main.cpp:

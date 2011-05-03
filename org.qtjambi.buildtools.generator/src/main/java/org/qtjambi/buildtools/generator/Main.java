@@ -1,4 +1,4 @@
-package org.qtjambi.buildtool.generator;
+package org.qtjambi.buildtools.generator;
 
 public class Main {
 	// src/main/qmake/wrapper.cpp:

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.maven.ide.eclipse.Maven2LaunchConfigurationType">
 <booleanAttribute key="M2_DEBUG_OUTPUT" value="true"/>
-<stringAttribute key="M2_GOALS" value="clean install"/>
+<stringAttribute key="M2_GOALS" value="clean assembly:single"/>
 <booleanAttribute key="M2_NON_RECURSIVE" value="false"/>
 <booleanAttribute key="M2_OFFLINE" value="false"/>
 <stringAttribute key="M2_PROFILES" value=""/>
 <listAttribute key="M2_PROPERTIES">
-<listEntry value="Xqtsdk.home=F:\qt_v4.7.2.20110417T071756Z_win32_mingw_release"/>
+<listEntry value="qtsdk.home=F:\qt_v4.7.2.20110417T071756Z_win32_mingw_release"/>
 <listEntry value="jdk.home=C:\Program Files\Java\jdk1.6.0_24"/>
 <listEntry value="jre.home=C:\Program Files\Java\jdk1.6.0_24\jre"/>
 <listEntry value="mingw.home=C:\MinGW"/>
@@ -15,8 +15,8 @@
 <listEntry value="cross_compile=x86_64-w64-mingw32-"/>
 <listEntry value="envvar.global.:TEST=foo"/>
 <listEntry value="path.append=-C:\Program Files (x86)\Common Files\Symbian\Tools"/>
-<listEntry value="toolchain=msvc"/>
-<listEntry value="qtsdk.home=F:\qt_v4.7.2.20110417T071756Z_win32_msvc2010_release"/>
+<listEntry value="toolchain=mingw"/>
+<listEntry value="descriptors=src/main/assembly/win32.win32.mingw.xml"/>
 </listAttribute>
 <stringAttribute key="M2_RUNTIME" value="EMBEDDED"/>
 <booleanAttribute key="M2_SKIP_TESTS" value="false"/>
@@ -25,5 +25,5 @@
 <stringAttribute key="org.eclipse.debug.core.ATTR_REFRESH_SCOPE" value="${project}"/>
 <stringAttribute key="org.eclipse.debug.core.source_locator_id" value="org.maven.ide.eclipse.launching.MavenSourceLocator"/>
 <stringAttribute key="org.eclipse.debug.core.source_locator_memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;sourceLookupDirector&gt;&#13;&#10;&lt;sourceContainers duplicates=&quot;false&quot;&gt;&#13;&#10;&lt;container memento=&quot;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot; standalone=&amp;quot;no&amp;quot;?&amp;gt;&amp;#13;&amp;#10;&amp;lt;workspace/&amp;gt;&amp;#13;&amp;#10;&quot; typeId=&quot;org.eclipse.debug.core.containerType.workspace&quot;/&gt;&#13;&#10;&lt;container memento=&quot;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot; standalone=&amp;quot;no&amp;quot;?&amp;gt;&amp;#13;&amp;#10;&amp;lt;default/&amp;gt;&amp;#13;&amp;#10;&quot; typeId=&quot;org.eclipse.debug.core.containerType.default&quot;/&gt;&#13;&#10;&lt;/sourceContainers&gt;&#13;&#10;&lt;/sourceLookupDirector&gt;&#13;&#10;"/>
-<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:/org.qtjambi.buildtool.juic}"/>
+<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:/org.qtjambi.buildtools.generator}"/>
 </launchConfiguration>
