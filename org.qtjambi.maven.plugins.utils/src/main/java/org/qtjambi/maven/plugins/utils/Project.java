@@ -31,14 +31,14 @@ public class Project {
 	private boolean weCreatedSourceDir;
 	private File targetDir;
 	private boolean weCreatedTargetDir;
-	private List<String> qmakeArguments;
 	private int qmakeDebugLevel;
+	private Boolean qmakeRecursive;
 
 	public Project(Context context) {
 		this.context = context;
 	}
 
-	public boolean runQmake(File[] files) {
+	public boolean runQmake(String[] qmakeArgumentsA, File[] files) {
 		if(errorState)
 			return false;
 		org.qtjambi.maven.plugins.utils.internal.ProcessBuilder processBuilder = new org.qtjambi.maven.plugins.utils.internal.ProcessBuilder(context.getLog());
@@ -55,17 +55,23 @@ public class Project {
 			commandExe = resolveAbsolutePath(env, commandExe);
 			command.add(commandExe);
 
-			if(qmakeArguments != null) {
-				for(String s : qmakeArguments)
-					command.add(s);
-			}
 			if(qmakeDebugLevel > 0) {
 				for(int i = 0; i < qmakeDebugLevel; i++)
 					command.add("-d");
 			}
+			if(qmakeRecursive != null) {
+				if(qmakeRecursive.booleanValue())
+					command.add("-r");		// old option still understood
+				else
+					command.add("-norecursive");
+			}
+			if(qmakeArgumentsA != null) {
+				for(String s : qmakeArgumentsA)
+					command.add(s);
+			}
 			if(files == null) {
 				if(targetDir != null && sourceDir != null) {		// shadow build, search sourceDir
-					command.add(sourceDir.getAbsolutePath());
+					command.add(sourceDir.getAbsolutePath() + File.pathSeparatorChar);
 					//command.add(".." + File.separator + sourceDir.getName());
 				}
 			} else {
@@ -97,7 +103,7 @@ public class Project {
 		return true;
 	}
 
-	public boolean runMake() {
+	public boolean runMake(String[] makeArgumentsA) {
 		if(errorState)
 			return false;
 
@@ -114,6 +120,11 @@ public class Project {
 			String commandExe = environmentResolver.resolveCommand(sourceDir, make);
 			commandExe = resolveAbsolutePath(env, commandExe);
 			command.add(commandExe);
+
+			if(makeArgumentsA != null) {
+				for(String s : makeArgumentsA)
+					command.add(s);
+			}
 
 			processBuilder.command(command);
 		}
@@ -232,12 +243,12 @@ public class Project {
 		this.weCreatedTargetDir = weCreatedTargetDir;
 	}
 
-	public void setQmakeArguments(List<String> qmakeArguments) {
-		this.qmakeArguments = qmakeArguments;
-	}
-
 	public void setQmakeDebugLevel(int qmakeDebugLevel) {
 		this.qmakeDebugLevel = qmakeDebugLevel;
+	}
+
+	public void setQmakeRecursive(Boolean qmakeRecursive) {
+		this.qmakeRecursive = qmakeRecursive;
 	}
 
 	// FIXME unused
@@ -401,12 +412,14 @@ public class Project {
 			e.printStackTrace();
 			// Cleanup
 			Utils.deleteRecursive(sourceDir);
+			sourceDir.delete();
 			return null;
 		}
 
 		File targetDir = createTemporaryDirectory(".tgt");
 		if(targetDir == null) {	// cleanup
 			Utils.deleteRecursive(sourceDir);
+			sourceDir.delete();
 			return null;
 		}
 

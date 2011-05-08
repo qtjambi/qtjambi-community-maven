@@ -163,8 +163,8 @@ public class DiagnosticMojo extends AbstractMojo {
 		try {
 			project = Project.extractFromClasspath(context, "qt_test");
 			if(project != null) {
-				project.runQmake(null);
-				project.runMake();
+				project.runQmake(null, null);
+				project.runMake(null);
 				project.runProjectProgram("qt_test");
 			}
 		} finally {
@@ -393,6 +393,22 @@ public class DiagnosticMojo extends AbstractMojo {
 		getLog().info("Maven:");
 		dumpEnvVar(getLog(), "MAVEN_HOME", true);
 		dumpSystemProperty(getLog(), "maven.home", true);
+
+		getLog().info("Maven Project Properties:");
+		for(Map.Entry<String,String> e : projectProperties.entrySet()) {
+			Object kObj = e.getKey();
+			String k = null;
+			if(kObj != null)
+				k = kObj.toString();
+			Object vObj = e.getValue();
+			String v = null;
+			if(vObj != null)
+				v = vObj.toString();
+
+			StringBuilder sb = new StringBuilder();
+			sb.append(" " + k + "=" + v);
+			getLog().info(sb.toString());
+		}
 	}
 
 	private void dumpWindowsInfo(Platform platform) {
@@ -408,6 +424,7 @@ public class DiagnosticMojo extends AbstractMojo {
 
 	private void dumpLinuxInfo(Platform platform) {
 		getLog().info("Operating System:");
+		getLog().info("os.name=" + platform.getOsName() + "; os.version=" + platform.getOsVersion() + "; os.arch=" + platform.getOsArch());
 		File f = new File("/etc/system-release");
 		if(f.exists() && dumpFile(getLog(), f))
 			return;
