@@ -7,10 +7,11 @@
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../org.qtjambi.parent/pom.xml</relativePath>
 	</parent>
-	<groupId>org.qtjambi</groupId>
-	<artifactId>releng.generic</artifactId>
+	<groupId>org.qtjambi.releng</groupId>
+	<artifactId>parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
+	<url>http://qt-jambi.org/</url>
 	<developers>
 		<developer>
 			<id>dmiles</id>
@@ -23,11 +24,6 @@
 	<build>
 		<finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.6</version>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
