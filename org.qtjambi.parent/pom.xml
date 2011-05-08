@@ -11,6 +11,7 @@
 	<packaging>pom</packaging>
 	<name>${project.groupId}.${project.artifactId}</name>
 	<version>0.0.1-SNAPSHOT</version>
+	<url>http://qt-jambi.org/</url>
 	<developers>
 		<developer>
 			<id>dmiles</id>
@@ -46,6 +47,13 @@
 			<name>QtJambi Maven Repository - Releases</name>
 			<url>http://repository.qt-jambi.org/nexus/content/repositories/releases</url>
 			<releases><enabled>true</enabled></releases>
+		</repository>
+		<repository>
+			<id>qtjambi.org.repositories.thirdparty</id>
+			<name>QtJambi Maven Repository - Third Party</name>
+			<url>http://repository.qt-jambi.org/nexus/content/repositories/thirdparty</url>
+			<releases><enabled>true</enabled></releases>
+			<snapshots><enabled>true</enabled></snapshots>
 		</repository>
 		<repository>
 			<id>qtjambi.org.repositories.snapshots</id>

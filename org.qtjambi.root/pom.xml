@@ -6,6 +6,23 @@
 	<name>${project.groupId}.${project.artifactId}</name>
 	<version>0.0.1-SNAPSHOT</version>
 	<description>This is the Maven root project</description>
+	<url>http://qt-jambi.org/</url>
+	<prerequisites>
+		<maven>2.0.9</maven>
+	</prerequisites>
+	<issueManagement>
+		<system>redmine</system>
+		<url>http://redmine.smar.fi/projects/qtjambi</url>
+	</issueManagement>
+	<mailingLists>
+		<mailingList>
+			<name>qt-jambi-interest</name>
+			<subscribe>mailto:qt-jambi-interest-request@qt.nokia.com?subject=subscribe</subscribe>
+			<unsubscribe>mailto:qt-jambi-interest-request@qt.nokia.com?subject=unsubscribe</unsubscribe>
+			<post>mailto:qt-jambi-interest@qt.nokia.com</post>
+			<archive>http://lists.qt.nokia.com/pipermail/qt-jambi-interest/</archive>
+		</mailingList>
+	</mailingLists>
 	<developers>
 		<developer>
 			<id>dmiles</id>
@@ -35,6 +52,11 @@
 			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
 		</license>
 	</licenses>
+	<scm>
+		<connection>scm:git:git://gitorious.org/qt-jambi/qtjambi-community-maven.git</connection>
+		<developerConnection>scm:git:git://git@gitorious.org/qt-jambi/qtjambi-community-maven.git</developerConnection>
+		<url>http://qt.gitorious.org/qt-jambi/qtjambi-community-maven</url>
+	</scm>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -107,6 +129,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<version.net.sf.qtjambi>4.5.2_01</version.net.sf.qtjambi><!-- LEGACY REMOVE ME --><!-- 4.6.3.2 -->
+		<version.org.apache.maven.maven-core>2.0.9</version.org.apache.maven.maven-core>
 		<version.org.apache.maven.maven-plugin-api>2.0</version.org.apache.maven.maven-plugin-api>
 		<version.org.qtjambi.buildtools.ant>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.ant>
 		<version.org.qtjambi.buildtools.generator>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.generator>

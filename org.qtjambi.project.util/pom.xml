@@ -14,6 +14,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<description>This JAR contains common dependencies used by both the 
 	build tools, build process and runtime for QtJambi project artifacts</description>
+	<url>http://qt-jambi.org/</url>
 	<developers>
 		<developer>
 			<id>dmiles</id>
