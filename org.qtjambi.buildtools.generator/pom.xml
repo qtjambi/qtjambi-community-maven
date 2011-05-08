@@ -13,6 +13,7 @@
 	<name>${project.groupId}.${project.artifactId}</name>
 	<version>0.0.1-SNAPSHOT</version>
 	<description>This is the build tool called "generator" required for building QtJambi project artifacts, this tool processes C/C++ header files to convert types for Java/JNI</description>
+	<url>http://qt-jambi.org/</url>
 	<developers>
 		<developer>
 			<id>dmiles</id>
@@ -59,62 +60,55 @@
 				<groupId>org.qtjambi.maven.plugins</groupId>
 				<artifactId>qmake-maven-plugin</artifactId>
 				<version>${version.org.qtjambi.maven.plugins.qmake-maven-plugin}</version>
+				<executions>
+					<execution>
+						<id>generateSources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generateSources</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
 					<includes>
 						<include>generator.pro</include>
 					</includes>
 				</configuration>
-<!-- 				<executions>
-
-<execution>
-            <id></id>
-            <phase>compile</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <inherited>false</inherited>
-            <configuration>
-            </configuration>
-          </execution>
-				</executions>  -->
-			</plugin>
-			<!-- <plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.2</version>
-				<configuration>
-					<executable>${project.qtdir}/bin/qmake</executable>
-				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>native-maven-plugin</artifactId>
-				<version>1.0-alpha-7</version>
-				<configuration>
-				</configuration>
-			</plugin> -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-nar-plugin</artifactId>
-				<version>2.1-SNAPSHOT</version>
-				<configuration>
-					<classifiers>
-						<classifier>windows-x86-mingw</classifier>
-						<classifier>linux-i386-gcc3</classifier>
-						<classifier>linux-amd64-gcc3</classifier>
-					</classifiers>
-				</configuration>
+				<groupId>org.qtjambi.maven.plugins</groupId>
+				<artifactId>jxe-maven-plugin</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
 				<executions>
 					<execution>
+						<id>jxe-package</id>
+						<phase>package</phase>
 						<goals>
-							<!-- <goal>nar-validate</goal>
-							<goal>nar-download</goal>
-							<goal>nar-unpack</goal> -->
-							<goal>nar-package</goal>
-							<!-- <goal>nar-assembly</goal> --><!-- Throws exception -->
+							<goal>jxe-package</goal>
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<filelistAssembly>
+						<includes>
+							<include>lib/**</include>
+						</includes>
+						<targetExecutables>
+							<targetExecutable>
+								<includes>
+									<include>bin/**</include>
+								</includes>
+							</targetExecutable>
+						</targetExecutables>
+					</filelistAssembly>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -170,7 +164,8 @@
 					<descriptors>
 						<descriptor>src/main/assembly/distribution.xml</descriptor>
 						<descriptor>src/main/assembly/project.xml</descriptor>
-						<descriptor>src/main/assembly/win32-win32-mingw.xml</descriptor>
+						<descriptor>src/main/assembly/windows-x86-mingw.xml</descriptor>
+						<descriptor>src/main/assembly/windows-x86-mingw-debug.xml</descriptor>
 					</descriptors>
 				</configuration>
 			</plugin>

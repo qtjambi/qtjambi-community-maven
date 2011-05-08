@@ -22,11 +22,22 @@ public class Main {
 	// header-file typesystem-file
 
 	private String[] args;
+	private Executable exe;
+	private static boolean seenErrorFlag;
+
+	public static void seenError() {
+		synchronized(Main.class) {
+			seenErrorFlag = true;
+		}
+	}
 
 	public Main(String[] args) {
 		this.args = args;
 	}
 
+	public void prepare() {
+		exe = ExecutableUtils.extractFromClasspath(null);
+	}
 
 	public void run() {
 		int i = 0;
@@ -34,14 +45,24 @@ public class Main {
 			System.out.println("arg[" + i + "]: " + s);
 			i++;
 		}
-		int status = 0;
+		Integer exitStatus = null;
 		// Extract
 		//NarManager.loadLibrary();
 		// Run
-		// Cleanup
-		System.out.println("exitStatus=" + status);
+		try {
+			exitStatus = exe.run(args);
+		} catch(Throwable t) {
+			// Cleanup
+			exe.cleanup();
+		}
+		if(exitStatus != null)
+			doExit(exitStatus.intValue());
+	}
+
+	private void doExit(int exitStatus) {
+		System.out.println("exitStatus=" + exitStatus);
 		System.out.flush();
-		System.exit(status);
+		System.exit(exitStatus);
 	}
 
 	/**
@@ -51,10 +72,12 @@ public class Main {
 		Main main = null;
 		try {
 			main = new Main(args);
+			main.prepare();
+			if(seenErrorFlag)
+				main.doExit(255);
 			main.run();
 		} catch(Throwable t) {
 			t.printStackTrace();
 		}
 	}
-
 }
