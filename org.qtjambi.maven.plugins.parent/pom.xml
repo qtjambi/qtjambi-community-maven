@@ -1,0 +1,71 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.qtjambi</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../org.qtjambi.parent/pom.xml</relativePath>
+	</parent>
+	<groupId>org.qtjambi.maven.plugins</groupId>
+	<artifactId>parent</artifactId>
+	<packaging>pom</packaging>
+	<name>${project.groupId}.${project.artifactId}</name>
+	<version>0.0.1-SNAPSHOT</version>
+	<description>This is the Maven plugin project to help build QtJambi
+	with Maven and to help build application projects using QtJambi with
+	Maven.</description>
+	<url>http://qt-jambi.org/</url>
+	<developers>
+		<developer>
+			<id>dmiles</id>
+			<name>Darryl L. Miles</name>
+			<email>darryl.miles@dlmc.co.uk</email>
+			<organizationUrl>http://www.qt-jambi.org/</organizationUrl>
+			<timezone>GMT0BST1</timezone>
+		</developer>
+	</developers>
+	<licenses>
+		<license>
+			<name>GNU GENERAL PUBLIC LICENSE, Version 2, June 1991</name>
+			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
+		</license>
+		<license>
+			<name>GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007</name>
+			<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
+		</license>
+		<license>
+			<name>GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1, February 1999</name>
+			<url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>
+			<distribution>repo</distribution>
+			<comments>One of multiple licensed work: GNU GPL v2 (Jun 1991), GNU GPL v3 (Jun 2007), GNU LGPL v2.1 (Feb 1999)</comments>
+		</license>
+	</licenses>
+	<build>
+		<finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2.1</version>
+				<configuration>
+					<descriptors>
+						<descriptor>src/main/assembly/distribution.xml</descriptor>
+						<descriptor>src/main/assembly/project.xml</descriptor>
+					</descriptors>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-plugin-api</artifactId>
+			<version>${version.org.apache.maven.maven-plugin-api}</version>
+		</dependency>
+	</dependencies>
+</project>
