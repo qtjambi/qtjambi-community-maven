@@ -13,6 +13,7 @@
 	<name>${project.groupId}.${project.artifactId}</name>
 	<version>0.0.1-SNAPSHOT</version>
 	<description>This is the build tool called "juic" required for building QtJambi project artifacts, this tool processes C/C++ header files to convert types for Java/JNI</description>
+	<url>http://qt-jambi.org/</url>
 	<developers>
 		<developer>
 			<id>dmiles</id>

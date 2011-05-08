@@ -13,6 +13,7 @@
 	<name>qtjambi-ant-plugin</name>
 	<version>0.0.1-SNAPSHOT</version>
 	<description>This is the Ant support plugin for building QtJambi project artifacts</description>
+	<url>http://qt-jambi.org/</url>
 	<developers>
 		<developer>
 			<id>dmiles</id>
