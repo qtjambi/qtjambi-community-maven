@@ -24,52 +24,54 @@ import org.qtjambi.maven.plugins.utils.shared.Utils;
  * @author <a href="mailto:darryl.miles@darrylmiles.org">Darryl L. Miles</a>
  *
  */
-public class QmakeCompileMojo extends AbstractMojo {
+public class QmakeCompileMojo extends AbstractQmakeMojo {
 	/**
-	 * @parameter expression=${qtsdk.home}
-	 */
-	private String qtDir;
-
-	/**
+	 * FIXME: This should be set from projectProperties by scanning for qmake.envvar.NAME
 	 * @parameter
 	 */
 	private Map<String,String> environmentVariables;
 
 	/**
-	 * @parameter default-value="${basedir}/src/main/qmake"
+	 * @parameter expression="${qmake.sourceDirectory}" default-value="${basedir}/src/main/qmake"
 	 */
 	private File sourceDirectory;
 
 	/**
 	 * @required
-	 * @parameter default-value="${project.build.directory}/qmake"
+	 * @parameter expression="${qmake.outputDirectory}" default-value="${project.build.directory}/qmake"
 	 */
 	private File outputDirectory;
 
 	/**
-	 * @parameter default-value="false"
+	 * @parameter expression="${qmake.debug}" default-value="false"
 	 */
 	private boolean debug;
 
 	/**
-	 * @parameter
+	 * @parameter expression="${qmake.debugLevel}"
 	 */
 	private Integer debugLevel;
 
 	/**
-	 * @parameter default-value="false"
-	 */
-	private boolean optimize;
-
-	/**
-	 * @parameter default-value="false"
+	 * @parameter expression="${qmake.verbose}" default-value="false"
 	 */
 	private boolean verbose;
 
 	/**
-	 * @parameter
+	 * @parameter expression="${qmake.recursive}" default-value="false"
 	 */
-	private String qmakeArguments;
+	private Boolean qmakeRecursive;
+
+	/**
+	 * @parameter expression="${qmake.args}"
+	 */
+	private String[] qmakeArguments;
+
+	/**
+	 * "release" or "debug" or "all" might be good choices here.
+	 * @parameter expression="${qmake.make.target}"
+	 */
+	private String qmakeTarget;
 
 	/**
 	 * @parameter
@@ -83,7 +85,7 @@ public class QmakeCompileMojo extends AbstractMojo {
 
 	/**
 	 * Allow forcing of behavior based on a specific qmake version.
-	 * @parameter
+	 * @parameter expression="${qmake.version}"
 	 */
 	private String qmakeVersion;
 	// FIXME: Provide goal to test/check for mismatch.
@@ -97,7 +99,7 @@ public class QmakeCompileMojo extends AbstractMojo {
 	 * 
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		getLog().info(QmakeCompileMojo.class.getCanonicalName() + ":execute()");
+		getLog().debug(QmakeCompileMojo.class.getCanonicalName() + ":execute()");
 
 		{
 			Platform platform = new Platform();
@@ -109,6 +111,7 @@ public class QmakeCompileMojo extends AbstractMojo {
 		if(debug && debugLevel == null)
 			debugLevel = Integer.valueOf(1);
 
+		// FIXME provide mechanism to just let qmake do recursive
 		DirectoryScanner ds = getDirectoryScanner();
 		ds.scan();
 		String[] fileA = ds.getIncludedFiles();
@@ -151,9 +154,14 @@ public class QmakeCompileMojo extends AbstractMojo {
 			project.setTargetDir(buildDirectory, false);
 			if(debugLevel != null)
 				project.setQmakeDebugLevel(debugLevel);
-			if(!project.runQmake(new File[] { qtMakeProFile }))
+			if(qmakeRecursive != null)
+				project.setQmakeRecursive(qmakeRecursive);
+			if(!project.runQmake(qmakeArguments, new File[] { qtMakeProFile }))
 				throw new MojoExecutionException("qmake execution failed");
-			if(!project.runMake())
+			String[] makeArguments = null;
+			if(qmakeTarget != null)
+				makeArguments = new String[] { qmakeTarget };
+			if(!project.runMake(makeArguments))
 				throw new MojoExecutionException("make execution failed");
 			return true;
 		} catch(Exception e) {
