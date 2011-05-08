@@ -12,11 +12,11 @@ import org.qtjambi.maven.plugins.utils.shared.Utils;
  */
 public class GenerateSourcesMojo extends AbstractMojo {
 	/**
-	 * @parameter default-value="${basedir}/src/main/generator/all.xml"
+	 * @parameter expression="${generator.typesystemxml}" default-value="${basedir}/src/main/generator/all.xml"
 	 */
 	private String typeSystemXml;
 	/**
-	 * @parameter default-value="${basedir}/src/main/generator/masterinclude.h"
+	 * @parameter expression="${generator.masterheaderinclude}" default-value="${basedir}/src/main/generator/masterinclude.h"
 	 */
 	private String masterHeaderInclude;
 	/**
@@ -24,19 +24,19 @@ public class GenerateSourcesMojo extends AbstractMojo {
 	 */
 	private String outputDirectory;
 	/**
-	 * @parameter expression="${qtsdk.home}/include"
+	 * @parameter expression="${qt.include.directory}" default-value="${qtsdk.home}/include"
 	 */
 	private String qtIncludeDirectory;
 	/**
-	 * @parameter expression="${qtsdk.home}/lib"
+	 * @parameter expression="${qt.lib.directory}" default-value="${qtsdk.home}/lib"
 	 */
 	private String qtLibDirectory;
 	/**
-	 * @parameter
+	 * @parameter expression="${kde.phonon.directory}"
 	 */
 	private String kdePhononDirectory;
 	/**
-	 * @parameter
+	 * @parameter expression="${generator.args}"
 	 */
 	private String[] generatorArguments;
 

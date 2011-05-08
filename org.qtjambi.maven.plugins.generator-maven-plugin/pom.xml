@@ -13,15 +13,7 @@
 	<name>${project.groupId}.${project.artifactId}</name>
 	<version>0.0.1-SNAPSHOT</version>
 	<description>This is the Maven plugin project to help build QtJambi</description>
-	<developers>
-		<developer>
-			<id>dmiles</id>
-			<name>Darryl L. Miles</name>
-			<email>darryl.miles@dlmc.co.uk</email>
-			<organizationUrl>http://www.qt-jambi.org/</organizationUrl>
-			<timezone>GMT0BST1</timezone>
-		</developer>
-	</developers>
+	<url>http://qt-jambi.org/</url>
 	<licenses>
 		<license>
 			<name>GNU GENERAL PUBLIC LICENSE, Version 2, June 1991</name>
