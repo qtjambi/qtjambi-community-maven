@@ -6,7 +6,7 @@
 		http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1
 		http://maven.apache.org/xsd/assembly-1.1.1.xsd">
 
-	<id>win32-win32-mingw</id>
+	<id>windows-x86-mingw</id>
 
 	<formats>
 		<format>jar</format>
@@ -16,7 +16,7 @@
 
 	<fileSets>
 		<fileSet>
-			<directory>${project.build.outputDirectory}</directory>
+			<directory>${project.build.directory}/classes</directory>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
 		<fileSet>
@@ -28,10 +28,10 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.build.directory}</directory>
-			<outputDirectory>lib</outputDirectory>
+			<directory>${project.build.directory}/qmake/generator.pro/release</directory>
+			<outputDirectory>bin</outputDirectory>
 			<includes>
-				<include>qmake/generator.pro/release/generator.exe</include>
+				<include>generator.exe</include>
 			</includes>
 		</fileSet>
 		<fileSet>
