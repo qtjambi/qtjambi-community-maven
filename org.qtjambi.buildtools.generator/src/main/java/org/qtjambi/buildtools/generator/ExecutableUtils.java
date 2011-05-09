@@ -11,9 +11,41 @@ import java.util.Properties;
 import java.util.Random;
 
 public abstract class ExecutableUtils {
+	public static final String K_file						= "file";
+	public static final String K_directory					= "directory";
 	public static final String K_executable					= "executable";
 	public static final String K_exe						= "exe";
+	public static final String K_dir						= "dir";
 	public static final String K_slash_filelist_properties	= "/filelist.properties";
+
+	public static String osName;
+
+	public static enum HostKind {
+		Unknown,
+		Linux,
+		Windows,
+		Macosx
+	}
+
+	public static HostKind getHostKind() {
+		String myOsName;
+		synchronized(ExecutableUtils.class) {
+			myOsName = osName;
+			if(myOsName == null) {
+				myOsName = System.getProperty("os.name");
+				if(myOsName != null)
+					myOsName = myOsName.toLowerCase();
+				osName = myOsName;
+			}
+		}
+		if(osName.startsWith("linux"))
+			return HostKind.Linux;
+		if(osName.startsWith("windows"))
+			return HostKind.Windows;
+		if(osName.startsWith("macosx"))
+			return HostKind.Macosx;
+		return HostKind.Unknown;
+	}
 
 	public static Executable extractFromClasspath(String toplevel) {
 		if(toplevel == null)
@@ -22,7 +54,7 @@ public abstract class ExecutableUtils {
 		{
 			InputStream inStream = null;
 			try {
-				inStream = ExecutableUtils.class.getClassLoader().getResourceAsStream(toplevel + K_slash_filelist_properties);
+				inStream = ExecutableUtils.class.getClass().getResourceAsStream(toplevel + K_slash_filelist_properties);
 				if(inStream == null)
 					return null;
 				// Load properties
@@ -44,7 +76,7 @@ public abstract class ExecutableUtils {
 		}
 
 		List<File> targetExecutableList = new ArrayList<File>();
-		File extractDir = createTemporaryDirectory("." + K_exe);
+		File extractDir = createTemporaryDirectory("." + K_dir);
 		if(extractDir == null)
 			return null;
 		//System.out.println("mkdir() = " + myDir.getAbsolutePath());
@@ -52,8 +84,20 @@ public abstract class ExecutableUtils {
 			// Create each file
 			Enumeration<Object> en = fileListProps.keys();
 			while(en.hasMoreElements()) {
-				Object o = en.nextElement();
-				String relPath = o.toString();
+				Object kObj = en.nextElement();
+				String k = kObj.toString();
+				String relPath;
+				boolean kindExecutable = false;
+				if(k.startsWith(K_directory + ".")) {
+					relPath = k.substring(K_directory.length() + 1);
+				} else if(k.startsWith(K_file + ".")) {
+					relPath = k.substring(K_file.length() + 1);
+				} else if(k.startsWith(K_executable + ".")) {
+					relPath = k.substring(K_executable.length() + 1);
+					kindExecutable = true;
+				} else {
+					relPath = k;
+				}
 
 				String dirName;
 				String fileName;
@@ -74,6 +118,8 @@ public abstract class ExecutableUtils {
 					fileName = relPath;
 				}
 
+				// FIXME Sanity check, no ".." in dirName ?
+
 				// Ensure directory is created
 				File dir;
 				if(dirName != null) {
@@ -81,7 +127,8 @@ public abstract class ExecutableUtils {
 					if(dir.isDirectory() == false) {
 						if(dir.mkdir() == false)
 							throw new RuntimeException("mkdir " + dir.getAbsolutePath() + "; failed");
-						//System.out.println("directoryCreated: " + dir.getAbsolutePath());
+						if(Main.isVerbose())
+							System.err.println("directoryCreated: " + dir.getAbsolutePath());
 					}
 				} else {
 					dir = extractDir;
@@ -94,15 +141,17 @@ public abstract class ExecutableUtils {
 					FileOutputStream fileOut = null;
 					InputStream inStream = null;
 					try {
-						inStream = ExecutableUtils.class.getClassLoader().getResourceAsStream(toplevel + "/" + relPath);
+						inStream = ExecutableUtils.class.getClass().getResourceAsStream(toplevel + "/" + relPath);
 						if(inStream == null)
 							throw new RuntimeException("missing file listed in filelist.properties: " + relPath);
 						fileOut = new FileOutputStream(file);
 
 						byte[] bA = new byte[1024];
+						long totalBytes = 0;
 						int n;
 						while((n = inStream.read(bA)) > 0) {
 							fileOut.write(bA, 0, n);
+							totalBytes += n;
 						}
 						fileOut.flush();
 						fileOut.close();
@@ -111,7 +160,10 @@ public abstract class ExecutableUtils {
 						inStream.close();
 						inStream = null;
 
-						//System.out.println("fileWritten: " + file.getAbsolutePath());
+						if(kindExecutable)
+							targetExecutableList.add(file);
+						if(Main.isVerbose())
+							System.err.println("fileWritten: " + file.getAbsolutePath() + " (" + totalBytes + " bytes)");
 					} finally {
 						if(fileOut != null) {
 							try {
@@ -238,5 +290,53 @@ public abstract class ExecutableUtils {
 			}
 		}
 		return bf;
+	}
+
+	public static String[] stringArrayPrepend(String[] valueA, String str) {
+		final int srcLength = valueA.length;
+		String[] newValueA = new String[srcLength + 1];
+		newValueA[0] = str;
+		System.arraycopy(valueA, 0, newValueA, 1, srcLength);
+		return newValueA;
+	}
+
+	public static String[] safeStringArrayPrepend(String[] valueA, String str) {
+		if(valueA != null)
+			return stringArrayPrepend(valueA, str);
+		return new String[] { str };
+	}
+
+	public static String[] stringArraySplit(String value, String str) {
+		List<String> list = new ArrayList<String>();
+		int fromIndex = 0;
+		int i;
+		while((i = value.indexOf(str, fromIndex)) >= 0) {
+			String oneValue = value.substring(fromIndex, i);
+			list.add(oneValue);
+			fromIndex = i + 1;
+		}
+		int rem = value.length() - fromIndex;
+		if(rem > 0)
+			list.add(value.substring(fromIndex));
+		return list.toArray(new String[list.size()]);
+	}
+
+	public static String[] safeStringArraySplit(String value, String str) {
+		if(value == null)
+			return null;
+		return stringArraySplit(value, str);
+	}
+
+	public static String stringConcat(String[] sA, String sep) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for(String s : sA) {
+			if(first)
+				first = false;
+			else
+				sb.append(sep);
+			sb.append(s);
+		}
+		return sb.toString();
 	}
 }

@@ -97,16 +97,15 @@
 				</executions>
 				<configuration>
 					<filelistAssembly>
+						<directory>${project.build.directory}/extra-resources</directory>
 						<includes>
 							<include>lib/**</include>
 						</includes>
-						<targetExecutables>
-							<targetExecutable>
-								<includes>
-									<include>bin/**</include>
-								</includes>
-							</targetExecutable>
-						</targetExecutables>
+						<targetExecutable>
+							<includes>
+								<include>bin/**</include>
+							</includes>
+						</targetExecutable>
 					</filelistAssembly>
 				</configuration>
 			</plugin>
@@ -174,10 +173,10 @@
 	<profiles>
 	</profiles>
 	<dependencies>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.qtjambi.maven.plugins</groupId>
 			<artifactId>utils</artifactId>
 			<version>${version.org.qtjambi.maven.plugins.utils}</version>
-		</dependency>
+		</dependency> -->
 	</dependencies>
 </project>

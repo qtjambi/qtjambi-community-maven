@@ -24,10 +24,17 @@ public class Main {
 	private String[] args;
 	private Executable exe;
 	private static boolean seenErrorFlag;
+	private static boolean verbose;
+
 
 	public static void seenError() {
 		synchronized(Main.class) {
 			seenErrorFlag = true;
+		}
+	}
+	public static boolean isVerbose() {
+		synchronized(Main.class) {
+			return verbose;
 		}
 	}
 
@@ -36,31 +43,32 @@ public class Main {
 	}
 
 	public void prepare() {
+		// Extract
 		exe = ExecutableUtils.extractFromClasspath(null);
 	}
 
-	public void run() {
-		int i = 0;
-		for(String s : args) {
-			System.out.println("arg[" + i + "]: " + s);
-			i++;
+	public void run() throws Throwable {
+		if(verbose) {
+			int i = 0;
+			for(String s : args) {
+				System.out.println("arg[" + i + "]: " + s);
+				i++;
+			}
 		}
+
 		Integer exitStatus = null;
-		// Extract
-		//NarManager.loadLibrary();
 		// Run
-		try {
-			exitStatus = exe.run(args);
-		} catch(Throwable t) {
-			// Cleanup
-			exe.cleanup();
-		}
-		if(exitStatus != null)
+		exitStatus = exe.run(args);
+		if(exitStatus != null && exitStatus.intValue() != 0)
 			doExit(exitStatus.intValue());
 	}
 
 	private void doExit(int exitStatus) {
-		System.out.println("exitStatus=" + exitStatus);
+		if(exe != null)
+			exe.cleanup();
+		exe = null;
+		if(exitStatus != 0)
+			System.out.println("exitStatus=" + exitStatus);
 		System.out.flush();
 		System.exit(exitStatus);
 	}
@@ -69,15 +77,22 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		if(System.getenv("MAVEN_EXE_VERBOSE") != null)
+			verbose = true;
+
 		Main main = null;
 		try {
 			main = new Main(args);
 			main.prepare();
-			if(seenErrorFlag)
+			if(main.exe == null || seenErrorFlag)
 				main.doExit(255);
 			main.run();
 		} catch(Throwable t) {
 			t.printStackTrace();
+		} finally {
+			if(main.exe != null)
+				main.exe.cleanup();
+			main.exe = null;
 		}
 	}
 }
