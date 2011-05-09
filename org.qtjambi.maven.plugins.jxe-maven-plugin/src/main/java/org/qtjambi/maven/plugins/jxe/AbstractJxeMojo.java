@@ -41,6 +41,21 @@ public abstract class AbstractJxeMojo extends AbstractMojo {
 	private FilelistAssembly filelistAssembly;
 
 	/**
+	 * @parameter expression="${jxe.outputPropertiesFile}" default-value="${project.build.directory}/classes/filelist.properties"
+	 */
+	private File outputPropertiesFile;
+
+	/**
+	 * @parameter expression="${jxe.ensureExecutable}" default-value="true"
+	 */
+	private boolean ensureExecutable;
+
+	/**
+	 * @parameter expression="${jxe.autoDetectExecutable}" default-value="true"
+	 */
+	private boolean autoDetectExecutable;
+
+	/**
 	 * 
 	 */
 	private JxeInfo jxeInfo;
@@ -59,6 +74,15 @@ public abstract class AbstractJxeMojo extends AbstractMojo {
 	}
 	public FilelistAssembly getFilelistAssembly() {
 		return this.filelistAssembly;
+	}
+	public File getOutputPropertiesFile() {
+		return this.outputPropertiesFile;
+	}
+	public boolean isEnsureExecutable() {
+		return ensureExecutable;
+	}
+	public boolean isAutoDetectExecutable() {
+		return autoDetectExecutable;
 	}
 
 	public final void execute() throws MojoExecutionException, MojoFailureException {

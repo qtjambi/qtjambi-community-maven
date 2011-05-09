@@ -65,13 +65,13 @@ public class QmakeCompileMojo extends AbstractQmakeMojo {
 	/**
 	 * @parameter expression="${qmake.args}"
 	 */
-	private String[] qmakeArguments;
+	private String[] qmakeArgs;
 
 	/**
 	 * "release" or "debug" or "all" might be good choices here.
 	 * @parameter expression="${qmake.make.target}"
 	 */
-	private String qmakeTarget;
+	private String qmakeMakeTarget;
 
 	/**
 	 * @parameter
@@ -156,11 +156,11 @@ public class QmakeCompileMojo extends AbstractQmakeMojo {
 				project.setQmakeDebugLevel(debugLevel);
 			if(qmakeRecursive != null)
 				project.setQmakeRecursive(qmakeRecursive);
-			if(!project.runQmake(qmakeArguments, new File[] { qtMakeProFile }))
+			if(!project.runQmake(qmakeArgs, new File[] { qtMakeProFile }))
 				throw new MojoExecutionException("qmake execution failed");
 			String[] makeArguments = null;
-			if(qmakeTarget != null)
-				makeArguments = new String[] { qmakeTarget };
+			if(qmakeMakeTarget != null)
+				makeArguments = new String[] { qmakeMakeTarget };
 			if(!project.runMake(makeArguments))
 				throw new MojoExecutionException("make execution failed");
 			return true;

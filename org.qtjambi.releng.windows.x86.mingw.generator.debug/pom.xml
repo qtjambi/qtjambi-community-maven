@@ -23,20 +23,140 @@
 	</developers>
 	<build>
 		<finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
+		<defaultGoal>jar:jar</defaultGoal>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<nonFilteredFileExtensions>
+						<nonFilteredFileExtension>exe</nonFilteredFileExtension>
+						<nonFilteredFileExtension>dll</nonFilteredFileExtension>
+					</nonFilteredFileExtensions>
+				</configuration>
+				<executions>
+					<execution>
+						<id>copy-resources-lib</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/extra-resources/lib</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${mingw.home}/bin</directory>
+									<filtering>false</filtering>
+									<includes>
+										<include>libgcc*.dll</include>
+										<include>libstdc++*.dll</include>
+										<include>mingw*.dll</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>${qtsdk.home}/lib</directory>
+									<filtering>false</filtering>
+									<includes>
+										<include>QtCored4.dll</include>
+										<include>QtXmld4.dll</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-resources-bin</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/extra-resources/bin</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/../org.qtjambi.buildtools.generator/target/qmake/generator.pro/debug</directory>
+									<filtering>false</filtering>
+									<includes>
+										<include>generator.exe</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.qtjambi.maven.plugins</groupId>
+				<artifactId>jxe-maven-plugin</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+				<executions>
+					<execution>
+						<id>jxe-package</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jxe-package</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<outputPropertiesFile>${project.build.directory}/extra-resources/filelist.properties</outputPropertiesFile>
+					<filelistAssembly>
+						<directory>${project.build.directory}/extra-resources</directory>
+						<includes>
+							<include>lib/**</include>
+						</includes>
+						<targetExecutable>
+							<includes>
+								<include>bin/**</include>
+							</includes>
+						</targetExecutable>
+					</filelistAssembly>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.2.1</version>
-				<configuration>
-					<descriptors>
-						<descriptor>src/main/assembly/distribution.xml</descriptor>
-						<descriptor>src/main/assembly/project.xml</descriptor>
-					</descriptors>
-				</configuration>
+				<executions>
+					<execution>
+						<id>single</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/distribution.xml</descriptor>
+								<descriptor>src/main/assembly/project.xml</descriptor>
+								<descriptor>src/main/assembly/sources.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>single-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>org.qtjambi.buildtools.generator.Main</mainClass>
+								</manifest>
+							</archive>
+							<descriptors>
+								<descriptor>src/main/assembly/jxe.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
+	<modules>
+		<module>../org.qtjambi.buildtools.generator</module>
+	</modules>
 	<dependencies>
 	</dependencies>
 </project>

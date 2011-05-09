@@ -5,7 +5,9 @@ import org.apache.maven.plugin.logging.Log;
 public class Platform {
 	private boolean initDone;
 	private String osName;
+	private String osNameCanon;
 	private String osArch;
+	private String osArchCanon;
 	private String osVersion;
 	private String exeSuffix;
 	private String batSuffix;
@@ -30,10 +32,18 @@ public class Platform {
 		osName = System.getProperty("os.name");
 		if(log != null)
 			log.debug(" system.property.os.name=" + osName);
+		if(osName != null)
+			osNameCanon = osName.toLowerCase();
+		else
+			osNameCanon = null;
 
 		osArch = System.getProperty("os.arch");
 		if(log != null)
 			log.debug(" system.property.os.arch=" + osArch);
+		if(osArch != null)
+			osArchCanon = osArch.toLowerCase();
+		else
+			osArchCanon = null;
 
 		osVersion = System.getProperty("os.version");
 		if(log != null)
@@ -44,12 +54,12 @@ public class Platform {
 	}
 
 	private void initStageTwo(Log log) {
-		if(osName != null) {
+		if(osNameCanon != null) {
 			// Windows 2000
 			// Windows XP
 			// Windows Vista
 			// Windows 7
-			if(osName.startsWith("Windows ")) {
+			if(osNameCanon.startsWith("windows")) {
 				exeSuffix = ".exe";
 				if(log != null)
 					log.debug(" setting exeSuffix=" + exeSuffix);
@@ -96,9 +106,9 @@ public class Platform {
 	}
 
 	public boolean isLinux(boolean andUnsure) {
-		if(osName == null)
+		if(osNameCanon == null)
 			return andUnsure;
-		if(osName.startsWith("Linux"))
+		if(osNameCanon.startsWith("linux"))
 			return true;
 		return false;
 	}
@@ -110,31 +120,31 @@ public class Platform {
 	}
 
 	public boolean isWindows(boolean andUnsure) {
-		if(osName == null)
+		if(osNameCanon == null)
 			return andUnsure;
-		if(osName.startsWith("Windows "))
+		if(osNameCanon.startsWith("windows"))
 			return true;
 		return false;
 	}
 	public boolean isWindows32(boolean andUnsure) {
-		if(osArch == null)
+		if(osArchCanon == null)
 			return andUnsure;
 		//if(osArch.equals("amd64"))
 			return true;
 		//return false;
 	}
 	public boolean isWindows64(boolean andUnsure) {
-		if(osArch == null)
+		if(osArchCanon == null)
 			return andUnsure;
-		if(osArch.equals("amd64"))
+		if(osArchCanon.equals("amd64"))
 			return true;
 		return false;
 	}
 
 	public boolean isMacosx(boolean andUnsure) {
-		if(osName == null)
+		if(osNameCanon == null)
 			return andUnsure;
-		if(osName.startsWith("mac os x") || osName.startsWith("Macosx"))	// CHECKME FIXME
+		if(osNameCanon.startsWith("mac os x") || osName.startsWith("macosx"))	// CHECKME FIXME
 			return true;
 		return false;
 	}
