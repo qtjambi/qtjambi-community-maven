@@ -1,3 +1,4 @@
 .metadata
+qtjambi-awtbridge
 qtjambi-community
 org.qtjambi.maven.plugins.nar-qtjambi-maven-plugin
