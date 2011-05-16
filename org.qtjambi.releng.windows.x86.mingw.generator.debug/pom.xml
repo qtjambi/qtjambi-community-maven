@@ -62,6 +62,13 @@
 										<include>QtXmld4.dll</include>
 									</includes>
 								</resource>
+								<resource>
+									<directory>${qtsdk.home}</directory>
+									<filtering>false</filtering>
+									<includes>
+										<include>.checkoutinfo</include>
+									</includes>
+								</resource>
 							</resources>
 						</configuration>
 					</execution>
