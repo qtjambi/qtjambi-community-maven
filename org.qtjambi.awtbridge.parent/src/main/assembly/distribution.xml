@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2
+		http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+
+	<id>distribution</id>
+
+	<formats>
+		<!-- <format>tar.gz</format> -->
+		<!-- <format>tar.bz2</format> -->
+		<format>zip</format>
+	</formats>
+
+	<fileSets>
+		<fileSet>
+			<directory>${project.basedir}</directory>
+			<outputDirectory>/</outputDirectory>
+			<useDefaultExcludes>true</useDefaultExcludes>
+			<excludes>
+				<exclude>manual/**</exclude><!-- eclipse output folder -->
+				<exclude>target/**</exclude><!-- Maven2 output folder -->
+				<exclude>.settings</exclude><!-- eclipse IDE settings -->
+				<exclude>.settings/**</exclude><!-- eclipse IDE settings -->
+				<exclude>.externalToolBuilders/**</exclude><!-- eclipse IDE settings -->
+				<exclude>.*/**</exclude><!-- eclipse IDE settings -->
+				<exclude>.classpath</exclude><!-- eclipse IDE settings -->
+				<exclude>.project</exclude><!-- eclipse IDE settings -->
+				<exclude>.fbwarnings</exclude><!-- eclipse IDE settings -->
+			</excludes>
+		</fileSet>
+		<fileSet>
+			<directory>${project.build.directory}</directory>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>${project.build.finalName}.jar</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+
+</assembly>
