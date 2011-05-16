@@ -7,6 +7,7 @@ public class EnvironmentEditor {
 	private Map<String, EnvironmentOperation[]> operationMap;
 	private int count;
 
+	// FIXME: Audit the code for handling Windows case-insensitive envvar names
 	public EnvironmentEditor() {
 		operationMap = new HashMap<String, EnvironmentOperation[]>();
 	}
@@ -49,6 +50,9 @@ public class EnvironmentEditor {
 		}
 		operationMap.put(key, opA);
 		count++;
+	}
+	public void remove(String key) {
+		operationMap.remove(key);
 	}
 	public void clear(String key) {
 		EnvironmentOperation[] opA = operationMap.remove(key);

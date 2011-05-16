@@ -249,6 +249,7 @@ public class Arguments {
 		}
 		gccEnvironmentResolver.setEnvvarMap(envvarGcc);
 		gccEnvironmentResolver.autoConfigure();
+		gccEnvironmentResolver.setCrossCompilePrefix(crossCompilePrefix);
 		platform.setGccEnvironmentResolver(gccEnvironmentResolver);
 
 		// MINGW
@@ -263,6 +264,7 @@ public class Arguments {
 		mingwEnvironmentResolver.setEnvvarMap(envvarMingw);
 		if(mingwHome != null)
 			mingwEnvironmentResolver.setHome(mingwHome, true);
+		mingwEnvironmentResolver.setCrossCompilePrefix(crossCompilePrefix);
 		platform.setMingwEnvironmentResolver(mingwEnvironmentResolver);
 
 		// MINGW-W64
@@ -277,6 +279,7 @@ public class Arguments {
 		mingwW64EnvironmentResolver.setEnvvarMap(envvarMingwW64);
 		if(mingwW64Home != null)
 			mingwW64EnvironmentResolver.setHome(mingwW64Home, true);
+		mingwW64EnvironmentResolver.setCrossCompilePrefix(crossCompilePrefix);
 		platform.setMingwW64EnvironmentResolver(mingwW64EnvironmentResolver);
 
 		// MSVC

@@ -86,7 +86,8 @@ public class Platform {
 
 	public String makeExeFilename(String filename) {
 		init(null);
-		if(exeSuffix != null)
+		// Trying not to check for it already (rather fix the source of the problem)
+		if(exeSuffix != null /*&& filename.endsWith(exeSuffix) == false*/)
 			return filename + exeSuffix;
 		return filename;
 	}

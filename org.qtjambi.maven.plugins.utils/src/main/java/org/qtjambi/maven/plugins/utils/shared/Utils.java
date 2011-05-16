@@ -438,4 +438,22 @@ public abstract class Utils {
 		}
 		return pathString;
 	}
+
+	public static boolean pathStringIsAbsolute(String pathAsString) {
+		if(File.separatorChar == '/') {		// linux && macosx
+			if(pathAsString.startsWith(File.separator) == false)
+				return true;
+		}
+		if(File.separatorChar == '\\') {	// windows
+			// FIXME: Do platform check, startWith() for linux/macosx, driver letter check as well for windows
+			if(pathAsString.length() >= 3) {
+				char c = pathAsString.charAt(0);
+				if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+					if(pathAsString.charAt(1) == ':' && pathAsString.charAt(2) == File.separatorChar)
+						return true;
+				}
+			}
+		}
+		return false;
+	}
 }

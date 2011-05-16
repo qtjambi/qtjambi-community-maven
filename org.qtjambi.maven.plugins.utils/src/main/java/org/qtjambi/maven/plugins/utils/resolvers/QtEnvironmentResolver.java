@@ -7,6 +7,9 @@ import java.util.Map;
 
 import org.qtjambi.maven.plugins.utils.IEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.Platform;
+import org.qtjambi.maven.plugins.utils.envvar.EnvironmentEditor;
+import org.qtjambi.maven.plugins.utils.envvar.EnvironmentPathEditor;
+import org.qtjambi.maven.plugins.utils.envvar.OpPathPrepend;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
@@ -19,15 +22,15 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 	private String qmakespecs;
 	private String commandMake;
 
-	private List<String> pathAppend;
-	private List<String> ldLibraryPathAppend;
-	private List<String> dyldLibraryPathAppend;
-	private Map<String,String> envvarMap;
+	private EnvironmentPathEditor pathEditor;
+	private EnvironmentEditor envvarEditor;
 
 	public QtEnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
 		commandMake = K_qmake;
+		pathEditor = new EnvironmentPathEditor();
+		envvarEditor = new EnvironmentEditor();
 	}
 
 	public void setHome(String home, boolean autoConfigure) {
@@ -44,16 +47,16 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 				File dirHomeLib = new File(home, "lib");
 				if(dirHomeLib.exists() && dirHomeLib.isDirectory()) {
 					if(platform.isWindows(false))
-						pathAppend = Utils.safeListStringAppend(pathAppend, "<" + dirHomeLib.getAbsolutePath());	// prepend
+						pathEditor.add(new OpPathPrepend(dirHomeLib.getAbsolutePath()));
 					if(platform.isLinux(false))
-						ldLibraryPathAppend = Utils.safeListStringAppend(ldLibraryPathAppend, "<" + dirHomeLib.getAbsolutePath());	// prepend
+						envvarEditor.add(K_LD_LIBRARY_PATH, new OpPathPrepend(dirHomeLib.getAbsolutePath()));
 					if(platform.isMacosx(false))
-						dyldLibraryPathAppend = Utils.safeListStringAppend(dyldLibraryPathAppend, "<" + dirHomeLib.getAbsolutePath());	// prepend
+						envvarEditor.add(K_DYLD_LIBRARY_PATH, new OpPathPrepend(dirHomeLib.getAbsolutePath()));
 				}
 
 				File dirHomeBin = new File(home, "bin");
 				if(dirHomeBin.exists() && dirHomeBin.isDirectory()) {
-					pathAppend = Utils.safeListStringAppend(pathAppend, "<" + dirHomeBin.getAbsolutePath());	// prepend
+					pathEditor.add(new OpPathPrepend(dirHomeBin.getAbsolutePath()));
 				}
 			}
 			// envvarMap
@@ -69,33 +72,27 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 		this.qmakespecs = qmakespecs;
 	}
 
+	@Override
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
 		super.applyEnvironmentVariables(envvar);
 		applyEnvironmentVariablesNoParent(envvar);
 	}
 
+	@Override
 	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
 		// Make it non-virtual
 		applyEnvironmentVariablesNoParent(envvar, this);
 	}
 
 	private void applyEnvironmentVariablesNoParent(Map<String, String> envvar, QtEnvironmentResolver uniqueSignature) {
-		if(envvarMap != null)
-			Utils.applyEnvVarMap(envvar, envvarMap);
-
-		if(pathAppend != null)
-			Utils.applyEnvVarPath(envvar, K_PATH, pathAppend);
-
-		if(ldLibraryPathAppend != null)
-			Utils.applyEnvVarPath(envvar, K_LD_LIBRARY_PATH, ldLibraryPathAppend);
-
-		if(dyldLibraryPathAppend != null)
-			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
+		envvarEditor.apply(envvar);
+		pathEditor.apply(envvar, K_PATH);
 
 		if(qmakespecs != null)
 			envvar.put(K_QMAKESPECS, qmakespecs);
 	}
 
+	@Override
 	public String resolveCommand(File dir, String command) {
 		if(commandMap.containsKey(command))
 			return commandMap.get(command);
@@ -123,6 +120,7 @@ public class QtEnvironmentResolver extends DefaultEnvironmentResolver implements
 		return commandPath;
 	}
 
+	@Override
 	public String resolveCommandMake() {
 		return commandMake;
 	}

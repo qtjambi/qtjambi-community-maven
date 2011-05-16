@@ -11,7 +11,6 @@ import org.qtjambi.maven.plugins.utils.envvar.EnvironmentPathEditor;
 import org.qtjambi.maven.plugins.utils.envvar.OpPathAppend;
 import org.qtjambi.maven.plugins.utils.envvar.OpPathPrepend;
 import org.qtjambi.maven.plugins.utils.envvar.OpSet;
-import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 public class MsvcEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
 	public static final String K_nmake = "nmake";

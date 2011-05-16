@@ -1,26 +1,26 @@
 package org.qtjambi.maven.plugins.utils.resolvers;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.qtjambi.maven.plugins.utils.IEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.Platform;
-import org.qtjambi.maven.plugins.utils.shared.Utils;
+import org.qtjambi.maven.plugins.utils.envvar.EnvironmentEditor;
+import org.qtjambi.maven.plugins.utils.envvar.EnvironmentPathEditor;
 
 public class JavaEnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
 
 	private String home;
 	private Map<String,String> commandMap;
 
-	private List<String> pathAppend;
-	private List<String> ldLibraryPathAppend;
-	private List<String> dyldLibraryPathAppend;
-	private Map<String,String> envvarMap;
+	private EnvironmentPathEditor pathEditor;
+	private EnvironmentEditor envvarEditor;
 
 	public JavaEnvironmentResolver(Platform platform) {
 		super(platform);
 		commandMap = new HashMap<String,String>();
+		pathEditor = new EnvironmentPathEditor();
+		envvarEditor = new EnvironmentEditor();
 	}
 
 	// envvarMap
@@ -31,27 +31,15 @@ public class JavaEnvironmentResolver extends DefaultEnvironmentResolver implemen
 	//  unset ANT
 	/// unset ANT_HOME
 
+	@Override
 	public void applyEnvironmentVariables(Map<String, String> envvar) {
 		super.applyEnvironmentVariables(envvar);
 		applyEnvironmentVariablesNoParent(envvar);
 	}
 
+	@Override
 	public void applyEnvironmentVariablesNoParent(Map<String, String> envvar) {
-		// Make it non-virtual
-		applyEnvironmentVariablesNoParent(envvar, this);
-	}
-
-	private void applyEnvironmentVariablesNoParent(Map<String, String> envvar, JavaEnvironmentResolver uniqueSignature) {
-		if(envvarMap != null)
-			Utils.applyEnvVarMap(envvar, envvarMap);
-
-		if(pathAppend != null)
-			Utils.applyEnvVarPath(envvar, K_PATH, pathAppend);
-
-		if(ldLibraryPathAppend != null)
-			Utils.applyEnvVarPath(envvar, K_LD_LIBRARY_PATH, ldLibraryPathAppend);
-
-		if(dyldLibraryPathAppend != null)
-			Utils.applyEnvVarPath(envvar, K_DYLD_LIBRARY_PATH, dyldLibraryPathAppend);
+		envvarEditor.apply(envvar);
+		pathEditor.apply(envvar, K_PATH);
 	}
 }
