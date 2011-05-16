@@ -160,8 +160,10 @@ public abstract class ExecutableUtils {
 						inStream.close();
 						inStream = null;
 
-						if(kindExecutable)
+						if(kindExecutable) {
+							file.setExecutable(true);
 							targetExecutableList.add(file);
+						}
 						if(Main.isVerbose())
 							System.err.println("fileWritten: " + file.getAbsolutePath() + " (" + totalBytes + " bytes)");
 					} finally {

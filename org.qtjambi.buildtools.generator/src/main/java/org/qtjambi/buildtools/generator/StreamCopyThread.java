@@ -45,14 +45,15 @@ public class StreamCopyThread extends Thread {
 
 	private Selector tryChannel() {
 		Selector sel = null;
-		if(true)
-			return sel;
+		//if(true)
+		//	return sel;
 		try {
 			sel = Selector.open();
 		} catch(IOException e) {
 			// On windows this does not always work, sometimes due to firewall
 			//  sometimes due to it being on a real terminal.  So we fallback
-			e.printStackTrace();
+			if(Main.isVerbose())
+				e.printStackTrace();
 		}
 		return sel;
 	}

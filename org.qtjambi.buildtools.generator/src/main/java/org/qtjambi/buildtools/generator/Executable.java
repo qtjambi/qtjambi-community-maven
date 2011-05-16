@@ -21,13 +21,29 @@ public class Executable {
 		if(extractDir != null) {
 			if(Main.isVerbose())
 				System.err.println("cleanup()");
-			bf = ExecutableUtils.deleteRecursive(extractDir);
-			if(extractDir.delete() == false)
-				bf = false;
+			if(Main.isNoCleanup()) {
+				System.err.println("noCleanup: " + extractDir.getAbsolutePath());
+			} else {
+				bf = ExecutableUtils.deleteRecursive(extractDir);
+				if(extractDir.delete() == false)
+					bf = false;
+			}
 		}
 		extractDir = null;
 		targetExecutable = null;
 		return bf;
+	}
+
+	private String findEnvVarKey(Map<String,String> envvars, String defaultKey) {
+		if(envvars.containsKey(defaultKey))
+			return defaultKey;
+		// On windows this can be mixed case
+		for(Map.Entry<String, String> e : envvars.entrySet()) {
+			String k = e.getKey();
+			if(k.equalsIgnoreCase(defaultKey))
+				return k;
+		}
+		return defaultKey;
 	}
 
 	public Integer run(String[] args) {
@@ -37,7 +53,7 @@ public class Executable {
 			command.add(s);
 		ProcessBuilder processBuilder = new ProcessBuilder(command);
 
-		Map<String,String> envvar = processBuilder.environment();
+		Map<String,String> envvars = processBuilder.environment();
 
 		File libDir = new File(extractDir, "lib");
 		String libPathItem = null;
@@ -49,26 +65,26 @@ public class Executable {
 		if(libPathItem != null) {
 			String key = null;
 			if(hostKind == ExecutableUtils.HostKind.Windows) {
-				key = K_PATH;
-				String pathString = envvar.get(key);
+				key = findEnvVarKey(envvars, K_PATH);
+				String pathString = envvars.get(key);
 				String[] pathA = ExecutableUtils.safeStringArraySplit(pathString, File.pathSeparator);
 				pathA = ExecutableUtils.safeStringArrayPrepend(pathA, libPathItem);
 				pathString = ExecutableUtils.stringConcat(pathA, File.pathSeparator);
-				envvar.put(key, pathString);
+				envvars.put(key, pathString);
 			} else if(hostKind == ExecutableUtils.HostKind.Linux) {
 				key = K_LD_LIBRARY_PATH;
-				String pathString = envvar.get(key);
+				String pathString = envvars.get(key);
 				String[] pathA = ExecutableUtils.safeStringArraySplit(pathString, File.pathSeparator);
 				pathA = ExecutableUtils.safeStringArrayPrepend(pathA, libPathItem);
 				pathString = ExecutableUtils.stringConcat(pathA, File.pathSeparator);
-				envvar.put(key, pathString);
+				envvars.put(key, pathString);
 			} else if(hostKind == ExecutableUtils.HostKind.Macosx) {
 				key = K_DYLD_LIBRARY_PATH;
-				String pathString = envvar.get(key);
+				String pathString = envvars.get(key);
 				String[] pathA = ExecutableUtils.safeStringArraySplit(pathString, File.pathSeparator);
 				pathA = ExecutableUtils.safeStringArrayPrepend(pathA, libPathItem);
 				pathString = ExecutableUtils.stringConcat(pathA, File.pathSeparator);
-				envvar.put(key, pathString);
+				envvars.put(key, pathString);
 			}
 			if(Main.isVerbose() && key != null)
 				System.err.println(key + "+=" + libPathItem);

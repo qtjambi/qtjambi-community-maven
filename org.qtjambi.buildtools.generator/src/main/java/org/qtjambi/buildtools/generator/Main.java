@@ -25,6 +25,7 @@ public class Main {
 	private Executable exe;
 	private static boolean seenErrorFlag;
 	private static boolean verbose;
+	private static boolean noCleanup;
 
 
 	public static void seenError() {
@@ -35,6 +36,11 @@ public class Main {
 	public static boolean isVerbose() {
 		synchronized(Main.class) {
 			return verbose;
+		}
+	}
+	public static boolean isNoCleanup() {
+		synchronized(Main.class) {
+			return noCleanup;
 		}
 	}
 
@@ -67,8 +73,22 @@ public class Main {
 		if(exe != null)
 			exe.cleanup();
 		exe = null;
-		if(exitStatus != 0)
-			System.out.println("exitStatus=" + exitStatus);
+		if(exitStatus != 0) {
+			String exitStatusString;
+			if(exitStatus < 0)	// high unsigned
+				exitStatusString = String.format("0x%x", exitStatus);
+			else
+				exitStatusString = Integer.valueOf(exitStatus).toString();
+			StringBuffer sb = new StringBuffer("exitStatus=" + exitStatusString);
+			if(ExecutableUtils.getHostKind() == ExecutableUtils.HostKind.Windows) {
+				// Windows error code diagnostics
+				if(exitStatus == 0xc0000005)
+					sb.append(" (Access Violation)");
+				else if(exitStatus == 0xc0000135)
+					sb.append(" (Unable to locate DLL)");
+			}
+			System.out.println(sb.toString());
+		}
 		System.out.flush();
 		System.exit(exitStatus);
 	}
@@ -79,6 +99,8 @@ public class Main {
 	public static void main(String[] args) {
 		if(System.getenv("MAVEN_EXE_VERBOSE") != null)
 			verbose = true;
+		if(System.getenv("MAVEN_EXE_NOCLEANUP") != null)
+			noCleanup = true;
 
 		Main main = null;
 		try {
