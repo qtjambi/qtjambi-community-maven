@@ -45,6 +45,10 @@
 	</dependencies>
 	<properties>
 		<oal>windows-x86-mingw</oal>
+		<os>windows</os>
+		<osarch>x86</osarch>
+		<cpuarch>generic</cpuarch>
+		<linker>mingw</linker>
 		<toolchain>mingw</toolchain>
 	</properties>
 </project>
