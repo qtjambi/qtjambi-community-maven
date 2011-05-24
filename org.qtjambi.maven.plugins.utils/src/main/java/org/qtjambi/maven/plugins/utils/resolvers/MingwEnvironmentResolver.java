@@ -91,7 +91,7 @@ public class MingwEnvironmentResolver extends DefaultEnvironmentResolver impleme
 			if(dirHome.isDirectory()) {
 				String relPath = Utils.resolveFileSeparator(new String[] { "bin", fileString });
 				File file = new File(dirHome, relPath);
-				if(file.exists() && file.isFile() && file.canExecute()) {
+				if(file.exists() && file.isFile() && Utils.invokeFileCanExecuteDefault(file, true)) {
 					commandPath = file.getAbsolutePath();
 					commandMap.put(command, commandPath);
 				}

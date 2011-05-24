@@ -1,6 +1,8 @@
 package org.qtjambi.maven.plugins.utils.shared;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -446,7 +448,7 @@ public abstract class Utils {
 			envvarPathA = Utils.stringArraySplit(envvarPath, File.pathSeparator);
 		for(String s : envvarPathA) {
 			File file = new File(s, relExePath);
-			if(file.exists() && file.isFile() && file.canExecute())
+			if(file.exists() && file.isFile() && invokeFileCanExecuteDefault(file, true))
 				return file.getAbsolutePath();
 		}
 		return null;
@@ -479,5 +481,63 @@ public abstract class Utils {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * QtJambi support JDK5, and this was only introduced in JDK6, so this
+	 *  is forward looking implementation of {@link File#setExecutable(boolean)}
+	 * @param file
+	 * @param executable
+	 * @return
+	 * @see File#setExecutable(boolean)
+	 */
+	public static Boolean invokeFileSetExecutable(File file, boolean executable) {
+		Boolean rv = null;
+		try {
+			// rv = file.setExecutable(executable);
+			Method method = file.getClass().getMethod("setExecutable", boolean.class);
+			Object rvObj = method.invoke(file, Boolean.valueOf(executable));
+			if(rvObj instanceof Boolean) {
+				rv = (Boolean) rvObj;
+			}
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		} catch (IllegalArgumentException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		}
+		return rv;
+	}
+
+	/**
+	 * QtJambi support JDK5, and this was only introduced in JDK6, so this
+	 *  is forward looking implementation of {@link File#canExecutable()}
+	 * @param file
+	 * @return
+	 * @see File#canExecute()
+	 */
+	public static Boolean invokeFileCanExecute(File file) {
+		Boolean rv = null;
+		try {
+			// rv = file.canExecute();
+			Method method = file.getClass().getMethod("canExecute", (Class<?> []) null);
+			Object rvObj = method.invoke(file, (Object[]) null);
+			if(rvObj instanceof Boolean) {
+				rv = (Boolean) rvObj;
+			}
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		} catch (IllegalArgumentException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		}
+		return rv;
+	}
+
+	public static boolean invokeFileCanExecuteDefault(File file, boolean defaultValue) {
+		Boolean rv = invokeFileCanExecute(file);
+		if(rv != null)
+			return rv.booleanValue();
+		return defaultValue;
 	}
 }

@@ -205,7 +205,7 @@ public class DiagnosticMojo extends AbstractMojo {
 				if(dir.exists() && dir.isDirectory()) {
 					File file = new File(dir, filename);
 					if(file.exists() && file.isFile()) {
-						if(file.canExecute()) {
+						if(Utils.invokeFileCanExecuteDefault(file, false)) {
 							getLog().info("found " + filename + " at " + file.getAbsolutePath());
 						} else {
 							getLog().info("found " + filename + " at " + file.getAbsolutePath() + "; canExecute()==false");
@@ -263,7 +263,7 @@ public class DiagnosticMojo extends AbstractMojo {
 			String thisFilename = environmentResolver.resolveCommand(null, filename);	// resolve ABS exec 
 			File file = new File(dir, thisFilename);
 			if(dir.exists() && dir.isDirectory()) {
-				if(file.exists() && file.isFile() && file.canExecute()) {
+				if(file.exists() && file.isFile() && Utils.invokeFileCanExecuteDefault(file, true)) {
 					Integer exitStatus = runCheckOnce(context, environmentResolver, file.getAbsolutePath(), args);
 					// FIXME: Log this fact
 				}

@@ -236,6 +236,38 @@ public abstract class ExecutableUtils {
 		return rv;
 	}
 
+	/**
+	 * QtJambi support JDK5, and this was only introduced in JDK6, so this
+	 *  is forward looking implementation of {@link File#canExecutable()}
+	 * @param file
+	 * @return
+	 * @see File#canExecute()
+	 */
+	public static Boolean invokeFileCanExecute(File file) {
+		Boolean rv = null;
+		try {
+			// rv = file.canExecute();
+			Method method = file.getClass().getMethod("canExecute", (Class<?> []) null);
+			Object rvObj = method.invoke(file, (Object[]) null);
+			if(rvObj instanceof Boolean) {
+				rv = (Boolean) rvObj;
+			}
+		} catch (SecurityException e) {
+		} catch (NoSuchMethodException e) {
+		} catch (IllegalArgumentException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		}
+		return rv;
+	}
+
+	public static boolean invokeFileCanExecuteDefault(File file, boolean defaultValue) {
+		Boolean rv = invokeFileCanExecute(file);
+		if(rv != null)
+			return rv.booleanValue();
+		return defaultValue;
+	}
+
 	public static File createTemporaryDirectory(String suffix) {
 		if(suffix == null)
 			suffix = ".dir";

@@ -11,6 +11,7 @@ import org.qtjambi.maven.plugins.utils.envvar.EnvironmentPathEditor;
 import org.qtjambi.maven.plugins.utils.envvar.OpPathAppend;
 import org.qtjambi.maven.plugins.utils.envvar.OpPathPrepend;
 import org.qtjambi.maven.plugins.utils.envvar.OpSet;
+import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 public class MingwW64EnvironmentResolver extends DefaultEnvironmentResolver implements IEnvironmentResolver {
 	public static final String K_mingw32_make = "mingw32-make";
@@ -55,14 +56,14 @@ public class MingwW64EnvironmentResolver extends DefaultEnvironmentResolver impl
 						File dirMingwHomeMybin = new File(dirMingwHome, "mybin");
 						if(dirMingwHomeMybin.exists() && dirMingwHomeMybin.isDirectory()) {
 							File exe = new File(dirMingwHomeMybin, K_mingw32_make);
-							if(exe.exists() && exe.isFile() && exe.canExecute()) {
+							if(exe.exists() && exe.isFile() && Utils.invokeFileCanExecuteDefault(exe, true)) {
 								// We don't add it to the $PATH because we might accidentally use the gcc.exe in there too
 								commandMake = exe.getAbsolutePath();	// don't add .exe
 								pathEditor.add(new OpPathAppend(dirMingwHomeMybin.getAbsolutePath()));
 								foundMingw32Make = true;
 							} else {
 								File exe2 = new File(dirMingwHomeMybin, K_mingw32_make + ".exe");
-								if(exe2.exists() && exe2.isFile() && exe2.canExecute()) {
+								if(exe2.exists() && exe2.isFile() && Utils.invokeFileCanExecuteDefault(exe2, true)) {
 									commandMake = exe.getAbsolutePath();
 									pathEditor.add(new OpPathAppend(dirMingwHomeMybin.getAbsolutePath()));
 									foundMingw32Make = true;

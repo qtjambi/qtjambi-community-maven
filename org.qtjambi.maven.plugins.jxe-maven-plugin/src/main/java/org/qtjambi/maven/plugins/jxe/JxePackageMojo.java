@@ -128,8 +128,8 @@ public class JxePackageMojo extends AbstractJxeMojo {
 						filelistProps.put(K_prefix_executable + "." + fileKeyString, STRING_empty);
 						executableSet.add(fileKeyString);
 					} else if(isEnsureExecutable() && execPass) {
-						if(file.canExecute() == false)
-							invokeFileSetExecutable(file, true);	// JDK5 safe: file.setExecutable(true);
+						if(Utils.invokeFileCanExecuteDefault(file, false) == false)
+							Utils.invokeFileSetExecutable(file, true);	// JDK5 safe: file.setExecutable(true);
 						filelistProps.put(K_prefix_executable + "." + fileKeyString, STRING_empty);
 						executableSet.add(fileKeyString);
 					} else {
@@ -142,34 +142,8 @@ public class JxePackageMojo extends AbstractJxeMojo {
 		return;
 	}
 
-	/**
-	 * QtJambi support JDK5, and this was only introduced in JDK6, so this
-	 *  is forward looking implementation of {@link File#setExecutable(boolean)}
-	 * @param file
-	 * @param executable
-	 * @return
-	 * @see File#setExecutable(boolean)
-	 */
-	public Boolean invokeFileSetExecutable(File file, boolean executable) {
-		Boolean rv = null;
-		try {
-			// rv = file.setExecutable(executable);
-			Method method = file.getClass().getMethod("setExecutable", boolean.class);
-			Object rvObj = method.invoke(file, Boolean.valueOf(executable));
-			if(rvObj instanceof Boolean) {
-				rv = (Boolean) rvObj;
-			}
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
-		}
-		return rv;
-	}
-
 	private boolean checkAutoDetectExecutable(File file) {
-		boolean bf = file.canExecute();
+		boolean bf = Utils.invokeFileCanExecuteDefault(file, false);
 		if(bf) {
 			String name = file.getName().toLowerCase();
 			// Should make this configurable, instead of presuming
