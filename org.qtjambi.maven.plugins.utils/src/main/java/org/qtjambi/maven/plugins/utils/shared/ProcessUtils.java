@@ -1,5 +1,6 @@
 package org.qtjambi.maven.plugins.utils.shared;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.maven.plugin.logging.Log;
 import org.qtjambi.maven.plugins.utils.internal.ProcessBuilder;
 
 public class ProcessUtils {
@@ -17,6 +19,63 @@ public class ProcessUtils {
 
 		public ProcessReturn(Integer exitStatus) {
 			this.exitStatus = exitStatus;
+		}
+	}
+
+	private static void emitEnvvar(Log log, String prefix, String key, String value) {
+		String linePrefix = null;
+		String linePadding = "";
+		String lineExtraPadding = "";
+
+		if(prefix != null) {
+			linePrefix = prefix;
+
+			StringBuilder sbPadding = new StringBuilder();
+			for(int i = 0; i < prefix.length(); i++)
+				sbPadding.append(' ');
+			linePadding = sbPadding.toString();
+		}
+
+		String[] valueA = null;
+		if(key != null) {
+			if(key.compareToIgnoreCase("PATH") == 0 || key.compareToIgnoreCase("INCLUDE") == 0 ||
+					key.compareToIgnoreCase("LIB") == 0 || key.compareToIgnoreCase("LIBPATH") == 0 ||
+					key.compareToIgnoreCase("LD_LIBRARY_PATH") == 0 || key.compareToIgnoreCase("DYLD_LIBRARY_PATH") == 0) {
+				int keyLen = key.length();
+				StringBuilder sbExtraPadding = new StringBuilder();
+				for(int i = 0; i < keyLen; i++)
+					sbExtraPadding.append(' ');
+				sbExtraPadding.append(File.pathSeparatorChar);
+				lineExtraPadding = sbExtraPadding.toString();
+
+				valueA = Utils.safeStringArraySplit(value, File.pathSeparator);
+			}
+		}
+
+		if(valueA != null) {
+			boolean first = true;
+			for(String v : valueA) {
+				StringBuilder sb = new StringBuilder();
+				if(linePrefix != null)
+					sb.append(linePrefix);
+				if(first) {
+					sb.append(key);
+					sb.append('=');
+					first = false;
+				}
+				sb.append(v);
+				log.debug(sb.toString());
+
+				linePrefix = linePadding + lineExtraPadding;
+			}
+		} else {
+			StringBuilder sb = new StringBuilder();
+			if(linePrefix != null)
+				sb.append(linePrefix);
+			sb.append(key);
+			sb.append('=');
+			sb.append(value);
+			log.debug(sb.toString());
 		}
 	}
 
@@ -37,9 +96,9 @@ public class ProcessUtils {
 				// FIXME: Do special pretty output for PATH like variable
 				if(first) {
 					first = false;
-					processBuilder.getLog().debug("ENVVAR: " + e.getKey() + "=" + e.getValue());
+					emitEnvvar(processBuilder.getLog(), "ENVVAR: ", e.getKey(), e.getValue());
 				} else {
-					processBuilder.getLog().debug("        " + e.getKey() + "=" + e.getValue());
+					emitEnvvar(processBuilder.getLog(), "        ", e.getKey(), e.getValue());
 				}
 			}
 		}

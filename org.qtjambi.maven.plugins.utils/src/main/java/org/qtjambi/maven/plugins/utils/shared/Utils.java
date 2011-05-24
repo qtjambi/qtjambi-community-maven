@@ -287,20 +287,44 @@ public abstract class Utils {
 
 	public static final String K_gcc 		= "gcc";
 	public static final String K_mingw 		= "mingw";
-	public static final String K_mingw_w64 	= "mingw_w64";	// prefered
+	public static final String K_mingw_w64 	= "mingw_w64";	// preferred
 	public static final String K_mingw__w64 = "mingw-w64";
 	public static final String K_msvc 		= "msvc";
 
 	public static Toolchain toolchainFromLabel(String s) {
-		if(s.equalsIgnoreCase(K_gcc))
+		String mainString;
+		String rest = null;
+		int dotIndex = s.indexOf('.');
+		if(dotIndex >= 0) {
+			mainString = s.substring(0, dotIndex);
+			if(s.length() > dotIndex)
+				rest = s.substring(dotIndex + 1);
+		} else {
+			mainString = s;
+		}
+		if(mainString.equalsIgnoreCase(K_gcc))
 			return Toolchain.gcc;
-		if(s.equalsIgnoreCase(K_mingw))
+		if(mainString.equalsIgnoreCase(K_mingw))
 			return Toolchain.mingw;
-		if(s.equalsIgnoreCase(K_mingw_w64) || s.equalsIgnoreCase(K_mingw__w64))
+		if(mainString.equalsIgnoreCase(K_mingw_w64) || mainString.equalsIgnoreCase(K_mingw__w64))
 			return Toolchain.mingw_w64;
-		if(s.equalsIgnoreCase(K_msvc))
+		if(mainString.equalsIgnoreCase(K_msvc))
 			return Toolchain.msvc;
 		return null;
+	}
+
+	public static String toolchainKindFromLabel(String s) {
+		String mainString;
+		String rest = null;
+		int dotIndex = s.indexOf('.');
+		if(dotIndex >= 0) {
+			mainString = s.substring(0, dotIndex);
+			if(s.length() > dotIndex)
+				rest = s.substring(dotIndex + 1);
+		} else {
+			mainString = s;
+		}
+		return rest;
 	}
 
 	public static String toolchainToLabel(Toolchain t) {

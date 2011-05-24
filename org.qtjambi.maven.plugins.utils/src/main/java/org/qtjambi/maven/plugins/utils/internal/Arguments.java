@@ -22,7 +22,7 @@ import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 // TODO: Dump available platforms, disambiguate
 public class Arguments {
-	public static final String K_toolchain			= "toolchain";			// gcc, mingw, mingw_w64/mingw-w64, msvc/msvc2010
+	public static final String K_toolchain			= "toolchain";			// gcc, mingw, mingw_w64/mingw-w64, msvc/msvc2010, msvc.x64
 	public static final String K_cross_compile		= "cross_compile";
 	public static final String K_qtsdk_home			= "qtsdk.home";
 	// FIXME: -platform $QMAKESPECS override for building (not implemented)
@@ -68,6 +68,7 @@ public class Arguments {
 	private String qtPlatform;
 	private String qtMakespecs;
 	private Toolchain toolchain;
+	private String toolchainKind;
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
 	private List<String> dyldLibraryPathAppend;
@@ -140,6 +141,19 @@ public class Arguments {
 				}
 				if(log != null)
 					log.debug(K_toolchain + ": is set \"" + s + "\"");
+			}
+		}
+		// toolchain.kind
+		if(toolchainKind == null) {
+			s = System.getProperty(K_toolchain);
+			if(s != null) {
+				toolchainKind = Utils.toolchainKindFromLabel(s);
+				if(toolchainKind == null) {
+					//log.error(K_toolchain + ": is invalid \"" + s + "\"");
+					// FIXME: Immediate failure error!
+				}
+				if(log != null)
+					log.debug(K_toolchain + ": is set \"" + toolchainKind + "\"");
 			}
 		}
 
@@ -282,6 +296,11 @@ public class Arguments {
 		mingwW64EnvironmentResolver.setCrossCompilePrefix(crossCompilePrefix);
 		platform.setMingwW64EnvironmentResolver(mingwW64EnvironmentResolver);
 
+		boolean x64Flag = false;
+		if(toolchainKind != null) {
+			if(toolchainKind.compareToIgnoreCase("x64") == 0)	// FIXME: Make it better
+				x64Flag = true;
+		}
 		// MSVC
 		MsvcEnvironmentResolver msvcEnvironmentResolver = new MsvcEnvironmentResolver(platform);
 		if(msvcEnvironmentResolver instanceof DefaultEnvironmentResolver) {	// Globals
@@ -293,7 +312,7 @@ public class Arguments {
 		}
 		msvcEnvironmentResolver.setEnvvarMap(envvarMsvc);
 		if(msvcHome != null)
-			msvcEnvironmentResolver.setHome(msvcHome, true);
+			msvcEnvironmentResolver.setHome(msvcHome, x64Flag, true);
 		platform.setMsvcEnvironmentResolver(msvcEnvironmentResolver);
 
 		// QT
