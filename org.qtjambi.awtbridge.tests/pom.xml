@@ -10,7 +10,7 @@
 	<groupId>org.qtjambi.awtbridge</groupId>
 	<artifactId>tests</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 	<url>http://qt-jambi.org/</url>
 	<developers>
 		<developer>
