@@ -75,14 +75,14 @@ public class MingwW64EnvironmentResolver extends DefaultEnvironmentResolver impl
 							File dirMingwHomeBin = new File(dirMingwHome, "bin");
 							if(dirMingwHomeBin.exists() && dirMingwHomeBin.isDirectory()) {
 								File exe = new File(dirMingwHomeBin, K_mingw32_make);
-								if(exe.exists() && exe.isFile() && exe.canExecute()) {
+								if(exe.exists() && exe.isFile() && Utils.invokeFileCanExecuteDefault(exe, true)) {
 									// We don't add it to the $PATH because we might accidentally use the gcc.exe in there too
 									commandMake = exe.getAbsolutePath();
 									pathEditor.add(new OpPathAppend(dirMingwHomeBin.getAbsolutePath()));
 									foundMingw32Make = true;
 								} else {
 									File exe2 = new File(dirMingwHomeBin, K_mingw32_make + ".exe");
-									if(exe2.exists() && exe2.isFile() && exe2.canExecute()) {
+									if(exe2.exists() && exe2.isFile() && Utils.invokeFileCanExecuteDefault(exe2, true)) {
 										commandMake = exe.getAbsolutePath();	// don't add .exe
 										pathEditor.add(new OpPathAppend(dirMingwHomeBin.getAbsolutePath()));
 										foundMingw32Make = true;
