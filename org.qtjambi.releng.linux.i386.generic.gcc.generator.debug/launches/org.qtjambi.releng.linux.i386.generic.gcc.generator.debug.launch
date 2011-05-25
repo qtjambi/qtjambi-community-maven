@@ -6,7 +6,7 @@
 <booleanAttribute key="M2_OFFLINE" value="false"/>
 <stringAttribute key="M2_PROFILES" value="linux-i386-generic-gcc debug"/>
 <listAttribute key="M2_PROPERTIES">
-<listEntry value="qtsdk.home=/build/qt_v4.7.2.20110415T230312Z_linux32_release"/>
+<listEntry value="qtsdk.home=/build/qt_v4.7.2.20110415T230312Z_linux32_debug"/>
 <listEntry value="jdk.home=/development/jdk1.5.0_22"/>
 <listEntry value="jre.home=/development/jdk1.5.0_22/jre"/>
 <listEntry value="toolchain=gcc"/>
