@@ -23,7 +23,6 @@
 	</developers>
 	<build>
 		<finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
-		<defaultGoal>jar:jar</defaultGoal>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
