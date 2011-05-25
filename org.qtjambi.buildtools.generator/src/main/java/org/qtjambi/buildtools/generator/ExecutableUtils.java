@@ -220,18 +220,44 @@ public abstract class ExecutableUtils {
 	 */
 	public static Boolean invokeFileSetExecutable(File file, boolean executable) {
 		Boolean rv = null;
-		try {
-			// rv = file.setExecutable(executable);
-			Method method = file.getClass().getMethod("setExecutable", boolean.class);
-			Object rvObj = method.invoke(file, Boolean.valueOf(executable));
-			if(rvObj instanceof Boolean) {
-				rv = (Boolean) rvObj;
+		if(rv == null) {
+			try {
+				// rv = file.setExecutable(executable);
+				Method method = file.getClass().getMethod("setExecutable", boolean.class);
+				Object rvObj = method.invoke(file, Boolean.valueOf(executable));
+				if(rvObj instanceof Boolean) {
+					rv = (Boolean) rvObj;
+				}
+			} catch (SecurityException e) {
+			} catch (NoSuchMethodException e) {
+			} catch (IllegalArgumentException e) {
+			} catch (IllegalAccessException e) {
+			} catch (InvocationTargetException e) {
 			}
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
+		}
+		if(rv == null && new File("/bin/chmod").exists()) {
+			try {
+				Process process = Runtime.getRuntime().exec(new String[] { "/bin/chmod", "+x", file.getAbsolutePath() });
+				try {
+					process.getOutputStream().close();
+				} catch(IOException eat) {
+				}
+				// FIXME: Should probably sink stdout/stderr
+				try {
+					process.getInputStream().close();
+				} catch(IOException eat) {
+				}
+				try {
+					process.getErrorStream().close();
+				} catch(IOException eat) {
+				}
+				int exitValue = process.exitValue();
+				if(exitValue == 0)
+					rv = Boolean.TRUE;
+				else
+					rv = Boolean.FALSE;
+			} catch (Exception e) {
+			}
 		}
 		return rv;
 	}
@@ -245,18 +271,44 @@ public abstract class ExecutableUtils {
 	 */
 	public static Boolean invokeFileCanExecute(File file) {
 		Boolean rv = null;
-		try {
-			// rv = file.canExecute();
-			Method method = file.getClass().getMethod("canExecute", (Class<?> []) null);
-			Object rvObj = method.invoke(file, (Object[]) null);
-			if(rvObj instanceof Boolean) {
-				rv = (Boolean) rvObj;
+		if(rv == null) {
+			try {
+				// rv = file.canExecute();
+				Method method = file.getClass().getMethod("canExecute", (Class<?> []) null);
+				Object rvObj = method.invoke(file, (Object[]) null);
+				if(rvObj instanceof Boolean) {
+					rv = (Boolean) rvObj;
+				}
+			} catch (SecurityException e) {
+			} catch (NoSuchMethodException e) {
+			} catch (IllegalArgumentException e) {
+			} catch (IllegalAccessException e) {
+			} catch (InvocationTargetException e) {
 			}
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
+		}
+		if(rv == null && new File("/bin/sh").exists()) {
+			try {
+				Process process = Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c", "test -x \"" + file.getAbsolutePath() + "\"" });
+				try {
+					process.getOutputStream().close();
+				} catch(IOException eat) {
+				}
+				// FIXME: Should probably sink stdout/stderr
+				try {
+					process.getInputStream().close();
+				} catch(IOException eat) {
+				}
+				try {
+					process.getErrorStream().close();
+				} catch(IOException eat) {
+				}
+				int exitValue = process.exitValue();
+				if(exitValue == 0)
+					rv = Boolean.TRUE;
+				else
+					rv = Boolean.FALSE;
+			} catch (Exception e) {
+			}
 		}
 		return rv;
 	}
