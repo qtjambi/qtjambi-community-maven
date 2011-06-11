@@ -37,11 +37,13 @@
 			</plugin>
 		</plugins>
 	</build>
+<!-- 
 	<modules>
 		<module>../org.qtjambi.releng.windows.x86.mingw.generator</module>
 		<module>../org.qtjambi.releng.windows.x86.mingw.generator.debug</module>
 	</modules>
-	<dependencies>
+ -->
+ 	<dependencies>
 	</dependencies>
 	<properties>
 		<oal>windows-x86-mingw</oal>

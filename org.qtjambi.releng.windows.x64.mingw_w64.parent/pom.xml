@@ -37,10 +37,11 @@
 			</plugin>
 		</plugins>
 	</build>
-	<modules>
+<!--	<modules>
 		<module>../org.qtjambi.releng.windows.x64.mingw_w64.generator</module>
 		<module>../org.qtjambi.releng.windows.x64.mingw_w64.generator.debug</module>
 	</modules>
+ -->
 	<dependencies>
 	</dependencies>
 	<properties>
