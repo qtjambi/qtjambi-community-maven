@@ -220,6 +220,19 @@ public abstract class Utils {
 		return sb.toString();
 	}
 
+	public static String stringConcat(Object[] oA, String sep) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for(Object o : oA) {
+			if(first)
+				first = false;
+			else
+				sb.append(sep);
+			sb.append(o.toString());
+		}
+		return sb.toString();
+	}
+
 	/**
 	 * 
 	 * @param path "C:\foo;D:\bar"

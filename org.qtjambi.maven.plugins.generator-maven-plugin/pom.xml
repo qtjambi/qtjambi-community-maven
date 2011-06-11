@@ -118,6 +118,11 @@
 			<version>${version.org.apache.maven.maven-plugin-api}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-project</artifactId>
+			<version>${version.org.apache.maven.maven-project}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.qtjambi.maven.plugins</groupId>
 			<artifactId>utils</artifactId>
 			<version>${version.org.qtjambi.maven.plugins.utils}</version>
@@ -126,6 +131,11 @@
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-utils</artifactId>
 			<version>${version.org.codehaus.plexus.plexus-utils}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.qtjambi.maven.plugins</groupId>
+			<artifactId>jxe-maven-plugin</artifactId>
+			<version>${version.org.qtjambi.maven.plugins.jxe-maven-plugin}</version>
 		</dependency>
 		<!-- <dependency>
 			<groupId>org.codehaus.plexus</groupId>
