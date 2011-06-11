@@ -138,6 +138,7 @@
 		<version.org.qtjambi.maven.plugins>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins>
 		<version.org.qtjambi.maven.plugins.generator-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins.generator-maven-plugin>
 		<version.org.qtjambi.maven.plugins.juic-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins.juic-maven-plugin>
+		<version.org.qtjambi.maven.plugins.jxe-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins.jxe-maven-plugin>
 		<version.org.qtjambi.maven.plugins.qmake-maven-plugin>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins.qmake-maven-plugin>
 		<version.org.qtjambi.maven.plugins.utils>0.0.1-SNAPSHOT</version.org.qtjambi.maven.plugins.utils>
 		<version.org.qtjambi.buildtools.qdoc3>0.0.1-SNAPSHOT</version.org.qtjambi.buildtools.qdoc3>
