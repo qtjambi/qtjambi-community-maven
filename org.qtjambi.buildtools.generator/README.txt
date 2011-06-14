@@ -1,11 +1,12 @@
 
 Last Sync:
-	commit 4404e55b3f6c9b4a920f8fce8b55428b9dcff678
-	Merge: 13e2020 143df9b
-	Author: Samu Voutilainen <smar@smar.fi>
-	Date:   Tue Jun 14 14:05:32 2011 +0300
+	commit a55cbde3273d7d853915e24808e277c5ec803758
+	Author: Marius Brehler <marbre@linux.sungazer.de>
+	Date:   Tue Jun 14 16:45:41 2011 +0200
 
-	    Merge commit 'refs/merge-requests/20' of git://gitorious.org/qt-jambi/qtjambi-community
+	    Change qmakebinary for juic to compile native also if cross compiling.
+    
+	    Signed-off-by: Samu Voutilainen <smar@smar.fi>
 
 
 Steps:
@@ -23,6 +24,10 @@ Rebase history:
 	Merge: 8897433 40ad0fc
 	Author: Samu Voutilainen <smar@smar.fi>
 
+	commit 4404e55b3f6c9b4a920f8fce8b55428b9dcff678
+	Merge: 13e2020 143df9b
+	Author: Samu Voutilainen <smar@smar.fi>
+
 31-Apr-2011
 	faeedf3..050a8f7  master     -> origin/master
 	# rebase/20110531_1generator.patch
@@ -32,3 +37,8 @@ Rebase history:
 	050a8f7..4404e55  master     -> origin/master
 	# rebase/20110614_1generator.patch
 	cd src/main/qmake/ && patch -p2 < ../../../../rebase/20110614_1generator.patch
+
+15-Jun-2011
+	4404e55..a55cbde  master     -> origin/master
+	# rebase/20110615_1generator.patch
+	cd src/main/qmake/ && patch -p2 < ../../../../rebase/20110615_1generator.patch
