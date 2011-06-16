@@ -1,12 +1,11 @@
 
 Last Sync:
-	commit a55cbde3273d7d853915e24808e277c5ec803758
-	Author: Marius Brehler <marbre@linux.sungazer.de>
-	Date:   Tue Jun 14 16:45:41 2011 +0200
-
-	    Change qmakebinary for juic to compile native also if cross compiling.
-    
-	    Signed-off-by: Samu Voutilainen <smar@smar.fi>
+	commit c2e8510c55eec3e5251795561911720e0c6f3dca
+	Merge: 189b7f1 4410cfd
+	Author: Darryl L. Miles <darryl.miles@darrylmiles.org>
+	Date:   Thu Jun 16 13:54:00 2011 +0100
+	
+	    Merge remote branch 'remotes/origin/merge-requests/27'
 
 
 Steps:
@@ -28,6 +27,10 @@ Rebase history:
 	Merge: 13e2020 143df9b
 	Author: Samu Voutilainen <smar@smar.fi>
 
+	commit a55cbde3273d7d853915e24808e277c5ec803758
+	Author: Marius Brehler <marbre@linux.sungazer.de>
+	Date:   Tue Jun 14 16:45:41 2011 +0200
+
 31-Apr-2011
 	faeedf3..050a8f7  master     -> origin/master
 	# rebase/20110531_1generator.patch
@@ -42,3 +45,8 @@ Rebase history:
 	4404e55..a55cbde  master     -> origin/master
 	# rebase/20110615_1generator.patch
 	cd src/main/qmake/ && patch -p2 < ../../../../rebase/20110615_1generator.patch
+
+16-Jun-2011
+	a55cbde..c2e8510  master     -> origin/master
+	# rebase/20110616_1generator.patch
+	cd src/main/qmake/ && patch -p2 < ../../../../rebase/20110616_1generator.patch
