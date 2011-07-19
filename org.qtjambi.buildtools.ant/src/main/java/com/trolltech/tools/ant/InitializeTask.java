@@ -67,13 +67,15 @@ public class InitializeTask extends Task {
      * Or rather these binds shouldn’t exist, how much of this could be moved to
      * xml side?
      */
-    public static final String LIBDIR           = "qtjambi.qt.libdir";
-    public static final String INCLUDEDIR       = "qtjambi.qt.includedir";
-    public static final String PLUGINSDIR       = "qtjambi.qt.pluginsdir";
-    public static final String PHONONLIBDIR     = "qtjambi.phonon.libdir";
+    public static final String LIBDIR           	= "qtjambi.qt.libdir";
+    public static final String INCLUDEDIR       	= "qtjambi.qt.includedir";
+    public static final String PLUGINSDIR       	= "qtjambi.qt.pluginsdir";
+    public static final String PHONONLIBDIR     	= "qtjambi.phonon.libdir";
     public static final String JAVALIBDIR		= "qtjambi.java.library.path";
-    public static final String JAMBILIBDIR	 	= "qtjambi.jambi.libdir";
-    public static final String VERSION          = "qtjambi.version";
+    public static final String JAMBILIBDIR		= "qtjambi.jambi.libdir";
+    public static final String VERSION          	= "qtjambi.version";
+    public static final String JAVA_HOME_TARGET		= "java.home.target";
+    public static final String JAVA_OSARCH_TARGET	= "java.osarch.target";
 
     /*
      * These properties are set inside this task
@@ -89,6 +91,9 @@ public class InitializeTask extends Task {
     public static final String PHONON_QT7       = "qtjambi.phonon_qt7";
     public static final String QMAKESPEC        = "qtjambi.qmakespec";
     public static final String SQLITE           = "qtjambi.sqlite";
+    public static final String SVG              = "qtjambi.svg";
+    public static final String MNG              = "qtjambi.mng";
+    public static final String TIFF             = "qtjambi.tiff";
     public static final String WEBKIT           = "qtjambi.webkit";
     public static final String XMLPATTERNS      = "qtjambi.xmlpatterns";
     public static final String HELP             = "qtjambi.help";
@@ -129,14 +134,27 @@ public class InitializeTask extends Task {
         finder.checkCompilerDetails();
         //finder.checkCompilerBits();
 
+        props.setNewProperty((String) null, JAVA_HOME_TARGET, decideJavaHomeTarget());
+        props.setNewProperty((String) null, JAVA_OSARCH_TARGET, decideJavaOsarchTarget());
+
         props.setNewProperty((String) null, CONFIGURATION, decideConfiguration());
 
         String phonon = decidePhonon(props);
 
         props.setNewProperty((String) null, SQLITE, decideSqlite());
 
+        props.setNewProperty((String) null, SVG, decideSvg());
+
+        props.setNewProperty((String) null, MNG, decideMng());
+
+        props.setNewProperty((String) null, TIFF, decideTiff());
+
         String webkit = decideWebkit();
-        if ("true".equals(webkit) && "true".equals(phonon))
+        // Not sure why this is a problem "ldd libQtWebKit.so.4.7.4" has no dependency on libphonon for me,
+        //  if you have headers and DSOs for WebKit then QtJambi should build the support.
+        if ("true".equals(webkit) && "true".equals(phonon) == false)
+            if (verbose) System.out.println("WARNING: " + WEBKIT + " is " + webkit + ", but " + PHONON + " is " + phonon);
+        if ("true".equals(webkit))
             props.setNewProperty((String) null, WEBKIT, webkit);
 
         String script = decideScript();
@@ -162,6 +180,49 @@ public class InitializeTask extends Task {
         String opengl = decideOpenGL();
         if ("true".equals(opengl))
             props.setNewProperty((String) null, OPENGL, opengl);
+    }
+
+    private String decideJavaHomeTarget() {
+        String s = (String) props.getProperty((String) null, JAVA_HOME_TARGET);
+        if (s == null)
+            s = System.getenv("JAVA_HOME_TARGET");
+        if (s == null)
+            s = System.getenv("JAVA_HOME");
+        String result = s;
+        props.setProperty((String) null, "env.JAVA_HOME_TARGET", result, false);	// does this work?
+        props.setProperty("env", "JAVA_HOME_TARGET", result, false);	// does this work?
+        if (verbose) System.out.println(JAVA_HOME_TARGET + ": " + result);
+        return result;
+    }
+
+    private String decideJavaOsarchTarget() {
+        String method = "";
+        String s = (String) props.getProperty((String) null, JAVA_OSARCH_TARGET);
+        if (s == null)
+            s = System.getenv("JAVA_OSARCH_TARGET");
+        if (s == null) {	// auto-detect using what we find
+            // This is based on a token observation that the include direcory
+            //  only had one sub-directory (this is needed for jni_md.h).
+            File includeDir = new File((String)props.getProperty((String) null, JAVA_HOME_TARGET), "include");
+            File found = null;
+            int foundCount = 0;
+            if (includeDir.exists()) {
+                File[] listFiles = includeDir.listFiles();
+                for (File f : listFiles) {
+                    if (f.isDirectory()) {
+                        foundCount++;
+                        found = f;
+                    }
+                }
+            }
+            if (foundCount == 1) {
+                s = found.getName();
+                method = " (auto-detected)";
+            }
+        }
+        String result = s;
+        if (verbose) System.out.println(JAVA_OSARCH_TARGET + ": " + result + method);
+        return result;
     }
 
     /**
@@ -257,6 +318,25 @@ public class InitializeTask extends Task {
     private String decideSqlite() {
         String result = String.valueOf(doesQtPluginExist("qsqlite", "sqldrivers"));
         if (verbose) System.out.println(SQLITE + ": " + result);
+        return result;
+    }
+
+    private String decideSvg() {
+        String result = String.valueOf(doesQtLibExist("QtSvg", 4));
+        if (verbose) System.out.println(SVG + ": " + result);
+        if("true".equals(result)) addToQtConfig("svg");
+        return result;
+    }
+
+    private String decideMng(){
+        String result = String.valueOf(doesQtPluginExist("qmng", "imageformats"));
+        if (verbose) System.out.println(MNG + ": " + result);
+        return result;
+    }
+
+    private String decideTiff() {
+        String result = String.valueOf(doesQtPluginExist("qtiff", "imageformats"));
+        if (verbose) System.out.println(TIFF + ": " + result);
         return result;
     }
 

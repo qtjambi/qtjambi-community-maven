@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 
+/**
+ * @todo Rewrite. This kind of API is PITA to use and maintain.
+ */
 class Exec {
 
     /**
@@ -46,8 +49,8 @@ class Exec {
      * Convenience method for exec(String, File).
      * @param command Command to be executed.
      */
-    public static void exec(String command) {
-        exec(command, null);
+    public static void exec(String command, Project project) {
+        exec(command, null, project);
     }
 
     /**
@@ -56,7 +59,7 @@ class Exec {
      * @param dir Directory where command should be executed.
      * @throws BuildException Thrown if process exit value is not zero or IOException has been occurred.
      */
-    public static void exec(String command, File dir) throws BuildException {
+    public static void exec(String command, File dir, Project project) throws BuildException {
         String directory = ((dir != null) ? "(" + Util.makeCanonical(dir) + ")" : "");
         System.out.println("Running : " + directory + " " + command);
         try {
@@ -72,14 +75,14 @@ class Exec {
 
     /**
      * TODO: this should be merged with above one, repeating code is not that wise.
-     * 
+     *
      * Executes process in more verbose manner.
      * @param cmd Array of command and its arguments to be executed.
      * @param dir Directory where should be executed.
      * @param verbose Whether to be verbose.
      * @throws BuildException Thrown if process exit value is not zero or IOException has been occurred.
      */
-    public static void exec(String cmd[], File dir, boolean verbose) throws BuildException {
+    public static void exec(String cmd[], File dir, Project project, boolean verbose) throws BuildException {
         if (verbose) {
             StringBuilder b = new StringBuilder();
             for (String s : cmd)
@@ -98,19 +101,19 @@ class Exec {
         }
     }
 
-    public static void execute(List<String> command, File directory) throws BuildException {
-        execute(command, directory, null, false);
-    }
-    
-    public static void execute(List<String> command, File directory, boolean msyssupport) throws BuildException {
-        execute(command, directory, null, msyssupport);
-    }
- 
-    public static void execute(List<String> command, File directory, String ldpath) throws BuildException {
-        execute(command, directory, ldpath, false);
+    public static void execute(List<String> command, File directory, Project project) throws BuildException {
+        execute(command, directory, project, null, false);
     }
 
-    public static void execute(List<String> command, File directory, String ldpath, boolean msyssupport) throws BuildException {
+    public static void execute(List<String> command, File directory, Project project, boolean msyssupport) throws BuildException {
+        execute(command, directory, project, null, msyssupport);
+    }
+
+    public static void execute(List<String> command, File directory, Project project, String ldpath) throws BuildException {
+        execute(command, directory, project, ldpath, false);
+    }
+
+    public static void execute(List<String> command, File directory, Project project, String ldpath, boolean msyssupport) throws BuildException {
         String fullCommand = null;
         if(msyssupport == true) {
             Iterator<String> iter = command.iterator();
@@ -119,10 +122,10 @@ class Exec {
             while(iter.hasNext()) {
                 builder.append(iter.next() + " ");
             }
-            
-            fullCommand = baseCommand + " " + builder.toString(); 
+
+            fullCommand = baseCommand + " " + builder.toString();
         }
-        
+
         ProcessBuilder builder;
         if(fullCommand == null) {
             System.out.println("Executing: " + command.toString() + " in directory " + directory.toString());
@@ -136,22 +139,39 @@ class Exec {
         // but it should not be needed there in first place... Only if you want to have same kind of building
         // environment one can have for Linux.
         // it should’t affect to Windows environment though.
-        if(ldpath != null) {
-        	Map<String, String> env = builder.environment();
-        	env.put("LD_LIBRARY_PATH", ldpath);
-        }
+        Map<String, String> env = builder.environment();
+        if(ldpath != null)
+            env.put("LD_LIBRARY_PATH", ldpath);
+
+        PropertyHelper props = PropertyHelper.getPropertyHelper(project);
+        String s = (String) props.getProperty("java.home.target");
+        if(s != null)
+            env.put("JAVA_HOME_TARGET", s);
+        s = (String) props.getProperty("java.osarch.target");
+        if(s != null)
+            env.put("JAVA_OSARCH_TARGET", s);
+
+        //something extra?
+        s = (String) props.getProperty("qtjambi.phonon.includedir");
+        if(s != null && s.length() > 0)
+            env.put("PHONON_INCLUDEPATH", s);
+
+        s = (String) props.getProperty("qtjambi.phonon.libdir");
+        if(s != null && s.length() > 0)
+            env.put("PHONON_LIBS", s);
+
         builder.directory(directory);
         try {
-			Process process = builder.start();
-			Util.redirectOutput(process);
-            /*if (process.exitValue() != 0) { //TODO: this must not be commented out. Generator qmake script has problems or something.
-                throw new BuildException("Running: '" + command.toString() + "' failed.");
-            }*/
-		} catch (IOException e) {
-			 throw new BuildException("Running: '" + command.toString() + "' failed.", e);
-		}
+            Process process = builder.start();
+            Util.redirectOutput(process);
+            if (process.exitValue() != 0) {
+                throw new BuildException("Running: '" + command.toString() + "' failed.  exitStatus=" + process.exitValue());
+            }
+        } catch (IOException e) {
+            throw new BuildException("Running: '" + command.toString() + "' failed.", e);
+        }
     }
-    
+
     /**
      * Internal helper of Exec.
      * @param ar What to join
@@ -162,7 +182,7 @@ class Exec {
         for (int i = 0; i<ar.length; ++i) {
             s += ar[i];
             if (i < ar.length - 1)
-                s += ", ";
+                s += " ";
         }
         return s;
     }

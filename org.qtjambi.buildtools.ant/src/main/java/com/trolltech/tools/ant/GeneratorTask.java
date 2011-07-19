@@ -66,6 +66,8 @@ public class GeneratorTask extends Task {
     private String qtIncludeDirectory = null;
     private String qtLibDirectory = null;
     private String jambiDirectory = null;
+    private String includePaths = null;
+    private boolean debugTools = false;
     private List<String> commandList = new ArrayList<String>();
 
     private String searchPath() {
@@ -123,6 +125,10 @@ public class GeneratorTask extends Task {
             commandList.add(options);
         }
 
+        if(includePaths != null) {
+            commandList.add("--include-paths=" + Util.escape(includePaths));
+        }
+
         if(!phononpath.equals("")) {
             commandList.add("--phonon-include=" + Util.escape(phononpath));
         }
@@ -163,6 +169,9 @@ public class GeneratorTask extends Task {
             commandList.add("--java-output-directory=" + Util.escape(file.getAbsolutePath()));
         }
 
+        if(debugTools)
+            commandList.add("--qtjambi-debug-tools");
+
         parseArgumentFiles(commandList);
 
         return true;
@@ -186,7 +195,7 @@ public class GeneratorTask extends Task {
         if("true".equals(msyssupportStr)) {
             msyssupport = true;
         }
-        Exec.execute(thisCommandList, new File(dir), qtLibDirectory, msyssupport);
+        Exec.execute(thisCommandList, new File(dir), getProject(), qtLibDirectory, msyssupport);
     }
 
     public void setHeader(String header) {
@@ -203,6 +212,13 @@ public class GeneratorTask extends Task {
 
     public void setKdephonon(String kdephonon) {
         this.kdephonon = kdephonon;
+    }
+
+    public void setIncludePaths(String includePaths) {
+        // HACK - We need (recursive) expansion of ${properties} this appears to do the trick
+        PropertyHelper props = PropertyHelper.getPropertyHelper(getProject());
+        String x = props.replaceProperties(null, includePaths, null);
+        this.includePaths = x;
     }
 
     public void setJambidirectory(String dir) {
@@ -238,5 +254,13 @@ public class GeneratorTask extends Task {
 
     public void setDir(String dir) {
         this.dir = dir;
+    }
+
+    /**
+     * Enable code generation with additional debugging output, this
+     *  output may inhibit runtime performance.
+     */
+    public void setDebugTools(boolean debugTools) {
+	this.debugTools = debugTools;
     }
 }
