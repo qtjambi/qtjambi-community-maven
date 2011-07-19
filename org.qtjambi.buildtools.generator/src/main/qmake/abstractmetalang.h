@@ -168,6 +168,7 @@ class AbstractMetaType {
             EnumPattern,
             ValuePattern,
             StringPattern,
+            StringRefPattern,
             CharPattern,
             ObjectPattern,
             QObjectPattern,
@@ -235,6 +236,9 @@ class AbstractMetaType {
 
         // returns true if the type was originally a QString or const QString & or equivalent for QLatin1String
         bool isTargetLangString() const { return m_pattern == StringPattern; }
+
+        // returns true if the type was originally a QStringRef or const QStringRef &
+        bool isTargetLangStringRef() const { return m_pattern == StringRefPattern; }
 
         // returns true if the type was originally a QChar or const QChar &
         bool isTargetLangChar() const { return m_pattern == CharPattern; }
@@ -885,8 +889,20 @@ class QPropertySpec {
         QString designable() const { return m_designable; }
         void setDesignable(const QString &designable) { m_designable = designable; }
 
+        QString scriptable() const { return m_scriptable; }
+        void setScriptable(const QString &scriptable) { m_scriptable = scriptable; }
+
         QString reset() const { return m_reset; }
         void setReset(const QString &reset) { m_reset = reset; }
+
+        QString notify() const { return m_notify; }
+        void setNotify(const QString &notify) { m_notify = notify; }
+
+        QString stored() const { return m_stored; }
+        void setStored(const QString &stored) { m_stored = stored; }
+
+        QString user() const { return m_user; }
+        void setUser(const QString &user) { m_user = user; }
 
         int index() const { return m_index; }
         void setIndex(int index) { m_index = index; }
@@ -896,7 +912,11 @@ class QPropertySpec {
         QString m_read;
         QString m_write;
         QString m_designable;
+        QString m_scriptable;
         QString m_reset;
+        QString m_notify;
+        QString m_stored;
+        QString m_user;
         const TypeEntry *m_type;
         int m_index;
 };

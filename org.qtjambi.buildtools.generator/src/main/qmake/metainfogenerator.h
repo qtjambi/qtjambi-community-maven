@@ -86,21 +86,24 @@ class MetaInfoGenerator : public JavaGenerator {
         QString cppOutputDirectory() const {
             if (!m_cpp_out_dir.isNull())
                 return m_cpp_out_dir;
-            return outputDirectory();
+            return outputDirectory() + QLatin1String("/cpp");
         }
         void setCppOutputDirectory(const QString &cppOutDir) { m_cpp_out_dir = cppOutDir; }
         QString javaOutputDirectory() const {
             if (!m_java_out_dir.isNull())
                 return m_java_out_dir;
-            return outputDirectory();
+            return outputDirectory() + QLatin1String("/java");
         }
         void setJavaOutputDirectory(const QString &javaOutDir) { m_java_out_dir = javaOutDir; }
+
+        bool qtJambiDebugTools() const { return m_qtjambi_debug_tools; }
+        void setQtJambiDebugTools(bool bf) { m_qtjambi_debug_tools = bf; }
 
     private:
         void writeCppFile();
         void writeHeaderFile();
         void writeLibraryInitializers();
-        void writeInclude(QTextStream &s, const Include &inc);
+        void writeInclude(QTextStream &s, const Include &inc, QSet<QString> &dedupe);
         void writeIncludeStatements(QTextStream &s, const AbstractMetaClassList &classList, const QString &package);
         void writeInitializationFunctionName(QTextStream &s, const QString &package, bool fullSignature);
         void writeInitialization(QTextStream &s, const TypeEntry *entry, const AbstractMetaClass *cls, bool registerMetaType = true);
@@ -115,9 +118,8 @@ class MetaInfoGenerator : public JavaGenerator {
         bool shouldGenerate(const TypeEntry *entry) const;
         void buildSkipList();
 
-#if defined(QTJAMBI_DEBUG_TOOLS)
+        // This is only needed when qtJambiDebugTools() is set
         void writeNameLiteral(QTextStream &, const TypeEntry *, const QString &fileName);
-#endif
 
         QHash<QString, int> m_skip_list;
         QString m_filenameStub;
@@ -130,6 +132,8 @@ class MetaInfoGenerator : public JavaGenerator {
 
         QString m_cpp_out_dir;
         QString m_java_out_dir;
+
+        bool m_qtjambi_debug_tools;
 };
 
 #endif // METAINFOGENERATOR_H

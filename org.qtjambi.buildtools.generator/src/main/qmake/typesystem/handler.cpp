@@ -80,9 +80,6 @@ bool Handler::endElement(const QString &, const QString &localName, const QStrin
             delete current->value.customFunction;
         }
         break;
-        case StackElement::EnumTypeEntry:
-            m_current_enum = 0;
-            break;
         case StackElement::Template:
             m_database->addTemplate(current->value.templateEntry);
             break;
@@ -300,9 +297,11 @@ bool Handler::startElement(const QString &, const QString &n,
 
         QString name = attributes["name"];
 
-        // We need to be able to have duplicate primitive type entries, or it's not possible to
-        // cover all primitive java types (which we need to do in order to support fake
-        // meta objects)
+        /*
+        We need to be able to have duplicate primitive type entries, or it's not possible to
+        cover all primitive java types (which we need to do in order to support fake
+        meta objects)
+        */
         if (element->type != StackElement::PrimitiveTypeEntry) {
             TypeEntry *tmp = m_database->findType(name);
             if (tmp != 0) {
@@ -340,37 +339,39 @@ bool Handler::startElement(const QString &, const QString &n,
             case StackElement::EnumTypeEntry: {
                 QStringList names = name.split(QLatin1String("::"));
 
+                EnumTypeEntry *eentry;
                 if (names.size() == 1) {
-                    m_current_enum = new EnumTypeEntry(QString(), name);
-                } else
-                    m_current_enum =
+                    eentry = new EnumTypeEntry(QString(), name);
+                } else {
+                    eentry =
                         new EnumTypeEntry(QStringList(names.mid(0, names.size() - 1)).join("::"),
                                           names.last());
-                element->entry = m_current_enum;
-                m_current_enum->setCodeGeneration(m_generate);
-                m_current_enum->setTargetLangPackage(m_defaultPackage);
-                m_current_enum->setUpperBound(attributes["upper-bound"]);
-                m_current_enum->setLowerBound(attributes["lower-bound"]);
-                m_current_enum->setForceInteger(convertBoolean(attributes["force-integer"], "force-integer", false));
-                m_current_enum->setExtensible(convertBoolean(attributes["extensible"], "extensible", false));
+                }
+                element->entry = eentry;
+                eentry->setCodeGeneration(m_generate);
+                eentry->setTargetLangPackage(m_defaultPackage);
+                eentry->setUpperBound(attributes["upper-bound"]);
+                eentry->setLowerBound(attributes["lower-bound"]);
+                eentry->setForceInteger(convertBoolean(attributes["force-integer"], "force-integer", false));
+                eentry->setExtensible(convertBoolean(attributes["extensible"], "extensible", false));
 
                 // put in the flags parallel...
                 if (!attributes["flags"].isEmpty() && attributes["flags"].toLower() != "no") {
                     FlagsTypeEntry *ftype = new FlagsTypeEntry("QFlags<" + name + ">");
-                    ftype->setOriginator(m_current_enum);
+                    ftype->setOriginator(eentry);
                     ftype->setOriginalName(attributes["flags"]);
                     ftype->setCodeGeneration(m_generate);
                     QString n = ftype->originalName();
 
                     QStringList lst = n.split("::");
-                    if (QStringList(lst.mid(0, lst.size() - 1)).join("::") != m_current_enum->javaQualifier()) {
+                    if (QStringList(lst.mid(0, lst.size() - 1)).join("::") != eentry->javaQualifier()) {
                         ReportHandler::warning(QString("enum %1 and flags %2 differ in qualifiers")
-                                               .arg(m_current_enum->javaQualifier())
+                                               .arg(eentry->javaQualifier())
                                                .arg(lst.at(0)));
                     }
 
                     ftype->setFlagsName(lst.last());
-                    m_current_enum->setFlags(ftype);
+                    eentry->setFlags(ftype);
 
                     m_database->addFlagsType(ftype);
                     //qDebug()<<"Adding ftype"<<ftype->name();
@@ -439,23 +440,25 @@ bool Handler::startElement(const QString &, const QString &n,
                 ctype->setIsPolymorphicBase(convertBoolean(attributes["polymorphic-base"], "polymorphic-base", false));
                 ctype->setPolymorphicIdValue(attributes["polymorphic-id-expression"]);
 
-                if (element->type == StackElement::ObjectTypeEntry || element->type == StackElement::ValueTypeEntry) {
-                    if (convertBoolean(attributes["force-abstract"], "force-abstract", false))
-                        ctype->setTypeFlags(ctype->typeFlags() | ComplexTypeEntry::ForceAbstract);
-                    if (convertBoolean(attributes["deprecated"], "deprecated", false))
-                        ctype->setTypeFlags(ctype->typeFlags() | ComplexTypeEntry::Deprecated);
-                }
-
-                if (element->type == StackElement::InterfaceTypeEntry ||
+                if (element->type == StackElement::ObjectTypeEntry ||
                         element->type == StackElement::ValueTypeEntry ||
-                        element->type == StackElement::ObjectTypeEntry) {
+                        element->type == StackElement::InterfaceTypeEntry) {
+
+                    if (element->type != StackElement::InterfaceTypeEntry) { // ObjectTypeEntry or ValueTypeEntry
+                        if (convertBoolean(attributes["force-abstract"], "force-abstract", false))
+                            ctype->setTypeFlags(ctype->typeFlags() | ComplexTypeEntry::ForceAbstract);
+
+                        if (convertBoolean(attributes["deprecated"], "deprecated", false))
+                            ctype->setTypeFlags(ctype->typeFlags() | ComplexTypeEntry::Deprecated);
+                    }
+
                     if (convertBoolean(attributes["delete-in-main-thread"], "delete-in-main-thread", false))
                         ctype->setTypeFlags(ctype->typeFlags() | ComplexTypeEntry::DeleteInMainThread);
                 }
 
                 QString targetType = attributes["target-type"];
-                if (!targetType.isEmpty() && element->entry->isComplex())
-                    static_cast<ComplexTypeEntry *>(element->entry)->setTargetType(targetType);
+                if (!targetType.isEmpty())
+                    ctype->setTargetType(targetType);
 
                 // ctype->setInclude(Include(Include::IncludePath, ctype->name()));
                 ctype = ctype->designatedInterface();
@@ -466,7 +469,7 @@ bool Handler::startElement(const QString &, const QString &n,
             break;
             default:
                 Q_ASSERT(false);
-        };
+        }
 
         if (element->entry) {
             //qDebug()<<"Adding element->entry"<<element->entry->name();
@@ -628,16 +631,15 @@ bool Handler::startElement(const QString &, const QString &n,
             }
             break;
             case StackElement::RejectEnumValue: {
-                if (!m_current_enum) {
+                if (current->type != StackElement::EnumTypeEntry) {
                     m_error = "<reject-enum-value> node must be used inside a <enum-type> node";
                     return false;
                 }
                 QString name = attributes["name"];
 
-                bool added = false;
                 if (!name.isEmpty()) {
-                    added = true;
-                    m_current_enum->addEnumValueRejection(name);
+                    EnumTypeEntry *eentry = static_cast<EnumTypeEntry*>(current->entry);
+                    eentry->addEnumValueRejection(name);
                 }
 
             }
@@ -751,7 +753,9 @@ bool Handler::startElement(const QString &, const QString &n,
                 static QHash<QString, TypeSystem::Ownership> ownershipNames;
                 if (ownershipNames.isEmpty()) {
                     ownershipNames["java"] = TypeSystem::TargetLangOwnership;
-                    ownershipNames["c++"] = TypeSystem::CppOwnership;
+                    // c++ - This is not allowed in a DTD validator as the "+" is not allowed for XML Name
+                    ownershipNames["c++"] = TypeSystem::CppOwnership;	// TODO remove this line at Qt5 release
+                    ownershipNames["cplusplus"] = TypeSystem::CppOwnership;
                     ownershipNames["default"] = TypeSystem::DefaultOwnership;
                 }
 
@@ -780,13 +784,13 @@ bool Handler::startElement(const QString &, const QString &n,
                 bool ok;
                 int pos = attributes["index"].toInt(&ok);
                 if (!ok) {
-                    m_error = QString("Can't convert position '%1' to integer")
-                              .arg(attributes["position"]);
+                    m_error = QString("Can't convert attribute index '%1' to integer")
+                              .arg(attributes["index"]);
                     return false;
                 }
 
                 if (pos <= 0) {
-                    m_error = QString("Argument position %1 must be a positive number").arg(pos);
+                    m_error = QString("Argument index %1 must be a positive number").arg(pos);
                     return false;
                 }
 
@@ -976,7 +980,7 @@ bool Handler::startElement(const QString &, const QString &n,
             }
             break;
             case StackElement::ReplaceDefaultExpression:
-                if (!(topElement.type & StackElement::ModifyArgument)) {
+                if (topElement.type != StackElement::ModifyArgument) {
                     m_error = "Replace default expression only allowed as child of argument modification";
                     return false;
                 }
@@ -1115,6 +1119,12 @@ bool Handler::startElement(const QString &, const QString &n,
             }
             break;
             case StackElement::Include: {
+                if (((topElement.type & StackElement::ComplexTypeEntryMask) == 0)
+                        && (topElement.type != StackElement::ExtraIncludes)) {
+                    m_error = "wrong parent type for include";
+                    return false;
+                }
+
                 QString location = attributes["location"].toLower();
 
                 static QHash<QString, Include::IncludeType> locationNames;
@@ -1142,10 +1152,11 @@ bool Handler::startElement(const QString &, const QString &n,
                     return false;
                 }
 
-                inc = ctype->include();
-                IncludeList lst = ctype->extraIncludes();
                 ctype = ctype->designatedInterface();
                 if (ctype != 0) {
+                    inc = ctype->include();
+                    IncludeList lst = ctype->extraIncludes();
+
                     ctype->setExtraIncludes(lst);
                     ctype->setInclude(inc);
                 }
@@ -1185,6 +1196,13 @@ bool Handler::startElement(const QString &, const QString &n,
                 }
                 element->parent->value.templateInstance->addReplaceRule(attributes["from"], attributes["to"]);
                 break;
+            case StackElement::ExtraIncludes: {
+                if ((topElement.type & StackElement::ComplexTypeEntryMask) == 0) {
+                    m_error = "wrong parent type for extra-includes";
+                    return false;
+                }
+            }
+            break;
             default:
                 break; // nada
         };

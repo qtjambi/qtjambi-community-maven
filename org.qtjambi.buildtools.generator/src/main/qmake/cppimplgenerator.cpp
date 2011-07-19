@@ -194,6 +194,8 @@ QString default_return_statement_qt(const AbstractMetaType *java_type,
         return returnStr + " QVariant()";
     if (java_type->isTargetLangString())
         return returnStr + " QString()";
+    if (java_type->isTargetLangStringRef())
+        return returnStr + " QStringRef()";
     if (java_type->isTargetLangChar())
         return returnStr + " QChar()";
     else if (java_type->isEnum())
@@ -428,18 +430,21 @@ void CppImplGenerator::write(QTextStream &s, const AbstractMetaClass *java_class
             qwidget = qwidget->baseClass();
         }
         if (qwidget)
-            s << "#include <QPainter>" << endl << endl;
+            s << "#include <QtGui/QPainter>" << endl << endl;
     }
 
-#if defined(QTJAMBI_DEBUG_TOOLS)
-    s << "#include <qtjambidebugtools_p.h>" << endl << endl;
-#endif
+    if (qtJambiDebugTools()) {
+        s << "#if defined(QTJAMBI_DEBUG_TOOLS)" << endl;
+        s << " #include <qtjambi/qtjambidebugtools_p.h>" << endl;
+        s << "#endif /* QTJAMBI_DEBUG_TOOLS */" << endl;
+        s << endl;
+    }
 
     if (shellInclude)
         s << "#include \"qtjambishell_" << java_class->name() << ".h\"" << endl;
 
     if (java_class->isQObject())
-        s << "#include <qtdynamicmetaobject.h>" << endl;
+        s << "#include <qtjambi/qtdynamicmetaobject.h>" << endl;
 
     Include inc = java_class->typeEntry()->include();
     if (!inc.name.isEmpty()) {
@@ -456,9 +461,9 @@ void CppImplGenerator::write(QTextStream &s, const AbstractMetaClass *java_class
         s << endl;
     }
 
-    s << "#include \"qtjambi_core.h\"" << endl
-    << "#include \"qtjambifunctiontable.h\"" << endl
-    << "#include \"qtjambilink.h\"" << endl;
+    s << "#include <qtjambi/qtjambi_core.h>" << endl
+    << "#include <qtjambi/qtjambifunctiontable.h>" << endl
+    << "#include <qtjambi/qtjambilink.h>" << endl;
 
     writeShellSignatures(s, java_class);
 
@@ -657,7 +662,7 @@ void CppImplGenerator::writeToStringFunction(QTextStream &s, const AbstractMetaC
         QString deref = QLatin1String(indirections == 0 ? "*" : "");
 
         s << endl;
-        s << "#include <QDebug>" << endl;
+        s << "#include <QtCore/QDebug>" << endl;
         s << jni_function_signature(java_class->package(), java_class->name(), "__qt_toString", "jstring")
         << "(JNIEnv *__jni_env, jobject, jlong __this_nativeId)" << endl
         << INDENT << "{" << endl;
@@ -700,6 +705,9 @@ void CppImplGenerator::writeShellSignatures(QTextStream &s, const AbstractMetaCl
 
     // Write the function names...
     if (has_constructors && java_class->hasVirtualFunctions()) {
+        // FIXME This is sometimes emitted when it does not need to be and results in
+        //  compiler warning (gcc linux - at least) about unused static data.
+        // I suspect the test above is not good enough.
         AbstractMetaFunctionList virtual_functions = java_class->virtualFunctions();
         {
             Indentation indent(INDENT);
@@ -988,9 +996,11 @@ void CppImplGenerator::writeShellDestructor(QTextStream &s, const AbstractMetaCl
             << INDENT << "    if (__jni_env != 0) m_link->nativeShellObjectDestroyed(__jni_env);" << endl;
         }
 
-#if defined(QTJAMBI_DEBUG_TOOLS)
-        s << INDENT << "    qtjambi_increase_shellDestructorCalledCount(QString::fromLatin1(\"" << java_class->name() << "\"));" << endl;
-#endif
+        if (qtJambiDebugTools()) {
+            s << "#if defined(QTJAMBI_DEBUG_TOOLS)" << endl;
+            s << INDENT << "    qtjambi_increase_shellDestructorCalledCount(QString::fromLatin1(\"" << java_class->name() << "\"));" << endl;
+            s << "#endif /* QTJAMBI_DEBUG_TOOLS */" << endl;
+        }
 
         s << INDENT << "}" << endl;
     }
@@ -1752,9 +1762,11 @@ void CppImplGenerator::writeFinalDestructor(QTextStream &s, const AbstractMetaCl
 
             s << INDENT << "delete (" << shellClassName(cls) << " *)ptr;" << endl;
 
-#if defined(QTJAMBI_DEBUG_TOOLS)
-            s << INDENT << "qtjambi_increase_destructorFunctionCalledCount(QString::fromLatin1(\"" << cls->name() << "\"));" << endl;
-#endif
+            if (qtJambiDebugTools()) {
+                s << "#if defined(QTJAMBI_DEBUG_TOOLS)" << endl;
+                s << INDENT << "qtjambi_increase_destructorFunctionCalledCount(QString::fromLatin1(\"" << cls->name() << "\"));" << endl;
+                s << "#endif /* QTJAMBI_DEBUG_TOOLS */" << endl;
+            }
         }
 
         s << INDENT << "}" << endl << endl;
@@ -1899,8 +1911,8 @@ void CppImplGenerator::writeSignalInitialization(QTextStream &s, const AbstractM
     << "                               java_object," << endl
     << "                               qt_wrapper->m_signals," << endl
     << "                               qtjambi_signal_count," << endl
-    << "                               (char **) qtjambi_signal_names," << endl
-    << "                               (int *) qtjambi_signal_argumentcounts);" << endl
+    << "                               qtjambi_signal_names," << endl
+    << "                               qtjambi_signal_argumentcounts);" << endl
     << "   }" << endl
     << "   QString signal_name = qtjambi_to_qstring(__jni_env, java_signal_name);" << endl
     << "   return qtjambi_connect_cpp_to_java(__jni_env," << endl
@@ -2164,6 +2176,12 @@ void CppImplGenerator::writeJavaToQt(QTextStream &s,
         s << INDENT << "QString " << qt_name
         << " =  qtjambi_to_qstring(__jni_env, (jstring) " << java_name << ");" << endl;
 
+    } else if (java_type->isTargetLangStringRef()) {
+        s << INDENT << "QString " << qt_name << "_s"
+        << " =  qtjambi_to_qstring(__jni_env, (jstring) " << java_name << ");" << endl;
+        s << INDENT << "QStringRef " << qt_name
+        << " =  QStringRef(&" << qt_name << "_s);" << endl;
+
     } else if (java_type->isTargetLangChar()) {
         s << INDENT << "QChar " << qt_name
         << " = (ushort)" << java_name << ";" << endl;
@@ -2426,6 +2444,10 @@ void CppImplGenerator::writeQtToJava(QTextStream &s,
 
     } else if (java_type->isTargetLangString()) {
         s << INDENT << "jstring " << java_name << " = qtjambi_from_qstring(__jni_env, "
+        << qt_name << ");" << endl;
+
+    } else if (java_type->isTargetLangStringRef()) {
+        s << INDENT << "jstring " << java_name << " = qtjambi_from_qstringref(__jni_env, "
         << qt_name << ");" << endl;
 
     } else if (java_type->isTargetLangChar()) {
@@ -2939,6 +2961,7 @@ QString CppImplGenerator::translateType(const AbstractMetaType *java_type, Optio
 
     if (java_type->isPrimitive()
             || java_type->isTargetLangString()
+            || java_type->isTargetLangStringRef()
             || java_type->isVariant()
             || java_type->isJObjectWrapper()
             || java_type->isTargetLangChar()
@@ -3015,6 +3038,9 @@ void CppImplGenerator::writeDefaultConstructedValues(QTextStream &s, const Abstr
     }
 
     if (!values.isEmpty()) {
+        // FIXME This is sometimes emitted when it does not need to be and results in
+        //  compiler warning (gcc linux - at least) about unused static data.
+        // I suspect the test above is not good enough.
         s << endl << endl
         << "// Default constructed values used throughout final functions..." << endl;
         for (QSet<QString>::const_iterator it = values.constBegin(); it != values.constEnd(); ++it) {

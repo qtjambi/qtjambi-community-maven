@@ -22,7 +22,7 @@ class AbstractMetaType;
 class EnumTypeEntry;
 class FlagsTypeEntry;
 
-class Include;
+struct Include;
 
 typedef QList<Include> IncludeList;
 
@@ -56,6 +56,7 @@ class TypeEntry {
             ThreadType,
             BasicValueType,
             StringType,
+            StringRefType,
             ContainerType,
             InterfaceType,
             ObjectType,
@@ -107,6 +108,9 @@ class TypeEntry {
         }
         bool isString() const {
             return m_type == StringType;
+        }
+        bool isStringRef() const {
+            return m_type == StringRefType;
         }
         bool isChar() const {
             return m_type == CharType;
@@ -315,7 +319,9 @@ class ArrayTypeEntry : public TypeEntry {
 class PrimitiveTypeEntry : public TypeEntry {
     public:
         PrimitiveTypeEntry(const QString &name)
-                : TypeEntry(name, PrimitiveType), m_preferred_conversion(true), m_preferred_java_type(true) {
+                : TypeEntry(name, PrimitiveType),
+                m_preferred_java_type(true) {
+            setPreferredConversion(true);
         }
 
         QString targetLangName() const {
@@ -340,13 +346,6 @@ class PrimitiveTypeEntry : public TypeEntry {
             return strings_java_lang;
         }
 
-        virtual bool preferredConversion() const {
-            return m_preferred_conversion;
-        }
-        virtual void setPreferredConversion(bool b) {
-            m_preferred_conversion = b;
-        }
-
         virtual bool preferredTargetLangType() const {
             return m_preferred_java_type;
         }
@@ -357,10 +356,7 @@ class PrimitiveTypeEntry : public TypeEntry {
     private:
         QString m_java_name;
         QString m_jni_name;
-    uint m_preferred_conversion :
-        1;
-    uint m_preferred_java_type :
-        1;
+        bool m_preferred_java_type;
 };
 
 class EnumTypeEntry : public TypeEntry {
@@ -539,7 +535,7 @@ class ComplexTypeEntry : public TypeEntry {
                 m_generic_class(false),
                 m_type_flags(0) {
             Include inc;
-            inc.name = "QVariant";
+            inc.name = "QtCore/QVariant";
             inc.type = Include::IncludePath;
 
             addExtraInclude(inc);
@@ -829,6 +825,28 @@ class StringTypeEntry : public ValueTypeEntry {
     public:
         StringTypeEntry(const QString &name)
                 : ValueTypeEntry(name, StringType) {
+            setCodeGeneration(GenerateNothing);
+        }
+
+        QString jniName() const {
+            return strings_jobject;
+        }
+        QString targetLangName() const {
+            return strings_String;
+        }
+        QString javaPackage() const {
+            return strings_java_lang;
+        }
+
+        virtual bool isNativeIdBased() const {
+            return false;
+        }
+};
+
+class StringRefTypeEntry : public ValueTypeEntry {
+    public:
+        StringRefTypeEntry(const QString &name)
+                : ValueTypeEntry(name, StringRefType) {
             setCodeGeneration(GenerateNothing);
         }
 

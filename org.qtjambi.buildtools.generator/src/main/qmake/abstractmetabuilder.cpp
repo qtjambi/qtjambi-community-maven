@@ -204,10 +204,10 @@ void AbstractMetaBuilder::checkFunctionModifications() {
     }
 }
 
-AbstractMetaClass *AbstractMetaBuilder::argumentToClass(ArgumentModelItem argument) {
+AbstractMetaClass *AbstractMetaBuilder::argumentToClass(ArgumentModelItem argument, const QString &contextString) {
     AbstractMetaClass *returned = 0;
     bool ok = false;
-    AbstractMetaType *type = translateType(argument->type(), &ok);
+    AbstractMetaType *type = translateType(argument->type(), &ok, contextString);
     if (ok && type != 0 && type->typeEntry() != 0 && type->typeEntry()->isComplex()) {
         const TypeEntry *entry = type->typeEntry();
         returned = m_meta_classes.findClass(entry->name());
@@ -222,7 +222,7 @@ AbstractMetaClass *AbstractMetaBuilder::argumentToClass(ArgumentModelItem argume
 void AbstractMetaBuilder::registerHashFunction(FunctionModelItem function_item) {
     ArgumentList arguments = function_item->arguments();
     if (arguments.size() == 1) {
-        if (AbstractMetaClass *cls = argumentToClass(arguments.at(0))) {
+        if (AbstractMetaClass *cls = argumentToClass(arguments.at(0), "AbstractMetaBuilder::registerHashFunction")) {
             QFileInfo info(function_item->fileName());
             cls->typeEntry()->addExtraInclude(Include(Include::IncludePath, info.fileName()));
 
@@ -239,7 +239,7 @@ void AbstractMetaBuilder::registerToStringCapability(FunctionModelItem function_
     if (arguments.size() == 2) {
         if (arguments.at(0)->type().toString() == "QDebug") {
             ArgumentModelItem arg = arguments.at(1);
-            if (AbstractMetaClass *cls = argumentToClass(arg)) {
+            if (AbstractMetaClass *cls = argumentToClass(arg, "AbstractMetaBuilder::registerToStringCapability")) {
                 if (arg->type().indirections() < 2) {
                     cls->setToStringCapability(function_item);
                 }
@@ -251,8 +251,8 @@ void AbstractMetaBuilder::registerToStringCapability(FunctionModelItem function_
 void AbstractMetaBuilder::traverseCompareOperator(FunctionModelItem item) {
     ArgumentList arguments = item->arguments();
     if (arguments.size() == 2 && item->accessPolicy() == CodeModel::Public) {
-        AbstractMetaClass *comparer_class = argumentToClass(arguments.at(0));
-        AbstractMetaClass *compared_class = argumentToClass(arguments.at(1));
+        AbstractMetaClass *comparer_class = argumentToClass(arguments.at(0), "AbstractMetaBuilder::traverseCompareOperator comparer_class");
+        AbstractMetaClass *compared_class = argumentToClass(arguments.at(1), "AbstractMetaBuilder::traverseCompareOperator compared_class");
         if (comparer_class != 0 && compared_class != 0) {
             AbstractMetaClass *old_current_class = m_current_class;
             m_current_class = comparer_class;
@@ -282,8 +282,8 @@ void AbstractMetaBuilder::traverseCompareOperator(FunctionModelItem item) {
 void AbstractMetaBuilder::traverseStreamOperator(FunctionModelItem item) {
     ArgumentList arguments = item->arguments();
     if (arguments.size() == 2 && item->accessPolicy() == CodeModel::Public) {
-        AbstractMetaClass *streamClass = argumentToClass(arguments.at(0));
-        AbstractMetaClass *streamedClass = argumentToClass(arguments.at(1));
+        AbstractMetaClass *streamClass = argumentToClass(arguments.at(0), "AbstractMetaBuilder::traverseStreamOperator streamClass");
+        AbstractMetaClass *streamedClass = argumentToClass(arguments.at(1), "AbstractMetaBuilder::traverseStreamOperator streamedClass");
 
         if (streamClass != 0 && streamedClass != 0
                 && (streamClass->name() == "QDataStream" || streamClass->name() == "QTextStream")) {
@@ -466,6 +466,7 @@ bool AbstractMetaBuilder::build() {
 
         if ((entry->isValue() || entry->isObject())
                 && !entry->isString()
+                && !entry->isStringRef()
                 && !entry->isChar()
                 && !entry->isContainer()
                 && !entry->isCustom()
@@ -1182,7 +1183,7 @@ AbstractMetaField *AbstractMetaBuilder::traverseField(VariableModelItem field, c
     bool ok;
     TypeInfo field_type = field->type();
     //qDebug()<<"\n\n\n"<<"Class in question:"<<cls->name()<<"\n\n\n";
-    AbstractMetaType *meta_type = translateType(field_type, &ok);
+    AbstractMetaType *meta_type = translateType(field_type, &ok, "traverseField " + class_name);
 
     if (!meta_type || !ok) {
         QString error = QString("skipping field '%1::%2' with unmatched type '%3'")
@@ -1560,9 +1561,9 @@ AbstractMetaFunction *AbstractMetaBuilder::traverseFunction(FunctionModelItem fu
         if (!cast_type.isEmpty()) {
             TypeInfo info;
             info.setQualifiedName(QStringList(cast_type));
-            type = translateType(info, &ok);
+            type = translateType(info, &ok, QString("traverseField %1.%2").arg(class_name).arg(function_name));
         } else {
-            type = translateType(function_type, &ok);
+            type = translateType(function_type, &ok, QString("traverseField %1.%2").arg(class_name).arg(function_name));
         }
 
         if (!ok) {
@@ -1591,7 +1592,7 @@ AbstractMetaFunction *AbstractMetaBuilder::traverseFunction(FunctionModelItem fu
         ArgumentModelItem arg = arguments.at(i);
 
         bool ok;
-        AbstractMetaType *meta_type = translateType(arg->type(), &ok);
+        AbstractMetaType *meta_type = translateType(arg->type(), &ok, QString("traverseField %1.%2 arg#%3").arg(class_name).arg(function_name).arg(i));
         if (!meta_type || !ok) {
             ReportHandler::warning(QString("skipping function '%1::%2', "
                                            "unmatched parameter type '%3'")
@@ -1652,6 +1653,7 @@ AbstractMetaFunction *AbstractMetaBuilder::traverseFunction(FunctionModelItem fu
 // uncomment the qDebug()s in order to inspect internals of the function
 AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
         bool *ok,
+        const QString &contextString,
         bool resolveType,
         bool resolveScope) {
     Q_ASSERT(ok);
@@ -1664,7 +1666,7 @@ AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
     TypeInfo typei;
     if (resolveType) {
         bool ok;
-        AbstractMetaType *t = translateType(type_info, &ok, false, resolveScope);
+        AbstractMetaType *t = translateType(type_info, &ok, contextString, false, resolveScope);
         if (t != 0 && ok) {
             //qDebug()<<"ResolveType ok (1. check)"<<t->fullName();
             return t;
@@ -1722,7 +1724,7 @@ AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
             newInfo.setReference(typei.isReference());
             newInfo.setVolatile(typei.isVolatile());
 
-            AbstractMetaType *elementType = translateType(newInfo, ok);
+            AbstractMetaType *elementType = translateType(newInfo, ok, contextString);
             if (!ok) {
                 qDebug() << "Something has happened.";
                 return 0;
@@ -1742,7 +1744,7 @@ AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
                 arrayType->setArrayElementCount(elems);
                 arrayType->setArrayElementType(elementType);
                 arrayType->setTypeEntry(new ArrayTypeEntry(elementType->typeEntry()));
-                decideUsagePattern(arrayType);
+                decideUsagePattern(arrayType, contextString);
 
                 elementType = arrayType;
             }
@@ -1815,7 +1817,7 @@ AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
             bool ok;
             info.setQualifiedName(QStringList() << contexts.at(0) << qualified_name);
             //   qDebug()<< "whiling in 9. type," << info.toString();
-            AbstractMetaType *t = translateType(info, &ok, true, false);
+            AbstractMetaType *t = translateType(info, &ok, contextString, true, false);
             if (t != 0 && ok) {
                 //     qDebug()<<"Returning ok from t != 0 && ok"<<t->fullName();
                 return t;
@@ -1828,7 +1830,7 @@ AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
             while (parts.size() > 1) {
                 parts.removeLast();
                 info.setQualifiedName(QStringList() << parts << qualified_name);
-                AbstractMetaType *t = translateType(info, &ok, true, false);
+                AbstractMetaType *t = translateType(info, &ok, contextString, true, false);
                 if (t != 0 && ok) {
                     //       qDebug()<<"Returning ok from 11. method"<<t->fullName();
                     return t;
@@ -1872,7 +1874,7 @@ AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
     meta_type->setReference(typeInfo.is_reference);
     meta_type->setConstant(typeInfo.is_constant);
     meta_type->setOriginalTypeDescription(type_info.toString());
-    decideUsagePattern(meta_type);
+    decideUsagePattern(meta_type, contextString);
 
     if (meta_type->typeEntry()->isContainer()) {
         //   qDebug()<<"The type is a container, descending...";
@@ -1881,7 +1883,7 @@ AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
         if (container_type == ContainerTypeEntry::StringListContainer) {
             TypeInfo info;
             info.setQualifiedName(QStringList() << "QString");
-            AbstractMetaType *targ_type = translateType(info, ok);
+            AbstractMetaType *targ_type = translateType(info, ok, contextString);
 
             Q_ASSERT(*ok);
             Q_ASSERT(targ_type);
@@ -1900,7 +1902,7 @@ AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
                 info.setQualifiedName(ta.instantiationName().split("::"));
 
                 //    qDebug()<< "Foreaching in container thingy," << info.toString();
-                AbstractMetaType *targ_type = translateType(info, ok);
+                AbstractMetaType *targ_type = translateType(info, ok, contextString);
                 if (!(*ok)) {
                     delete meta_type;
                     return 0;
@@ -1920,7 +1922,7 @@ AbstractMetaType *AbstractMetaBuilder::translateType(const TypeInfo &type_info,
     return meta_type;
 }
 
-void AbstractMetaBuilder::decideUsagePattern(AbstractMetaType *meta_type) {
+void AbstractMetaBuilder::decideUsagePattern(AbstractMetaType *meta_type, const QString &contextString) {
     const TypeEntry *type = meta_type->typeEntry();
 
     if (type->isPrimitive() && (meta_type->actualIndirections() == 0
@@ -1929,6 +1931,12 @@ void AbstractMetaBuilder::decideUsagePattern(AbstractMetaType *meta_type) {
 
     } else if (type->isVoid()) {
         meta_type->setTypeUsagePattern(AbstractMetaType::NativePointerPattern);
+
+    } else if (type->isStringRef()
+               && meta_type->indirections() == 0
+               && (meta_type->isConstant() == meta_type->isReference()
+                   || meta_type->isConstant())) {
+        meta_type->setTypeUsagePattern(AbstractMetaType::StringRefPattern);
 
     } else if (type->isString()
                && meta_type->indirections() == 0
@@ -2000,14 +2008,16 @@ void AbstractMetaBuilder::decideUsagePattern(AbstractMetaType *meta_type) {
 
     } else if (type->isObject() && meta_type->actualIndirections() == 0) {
 
-        ReportHandler::warning(QString("Object type '%1' passed as value. Resulting code will not compile.")
-                               .arg(meta_type->cppSignature()));
+        ReportHandler::warning(QString("Object type '%1' passed as value. Resulting code will not compile.  %2")
+                               .arg(meta_type->cppSignature())
+                               .arg(contextString));
         meta_type->setTypeUsagePattern(AbstractMetaType::NativePointerPattern);
 
     } else {
         meta_type->setTypeUsagePattern(AbstractMetaType::NativePointerPattern);
-        ReportHandler::debugFull(QString("native pointer pattern for '%1'")
-                                 .arg(meta_type->cppSignature()));
+        ReportHandler::debugFull(QString("native pointer pattern for '%1'  %2")
+                                 .arg(meta_type->cppSignature())
+                                 .arg(contextString));
     }
 }
 
@@ -2154,7 +2164,7 @@ AbstractMetaType *AbstractMetaBuilder::inheritTemplateType(const QList<AbstractM
         t->setIndirections(template_types.at(tae->ordinal())->indirections() + t->indirections()
                            ? 1
                            : 0);
-        decideUsagePattern(t);
+        decideUsagePattern(t, "inheritTemplateType " + returned->fullName());
 
         delete returned;
         returned = inheritTemplateType(template_types, t, ok);
@@ -2304,7 +2314,169 @@ void AbstractMetaBuilder::parseQ_Property(AbstractMetaClass *meta_class, const Q
     for (int i = 0; i < declarations.size(); ++i) {
         QString p = declarations.at(i);
 
+        /*
+        Pass 1: normalize all whitespace.
+        Remove leading/trailing, convert contiguous whitespace sequences to a single space character.
+        */
+        {
+            QString newP = QString();
+            const int len = p.length();
+            int state = 0;
+            int j;
+            for (j = 0; j < len; j++) {
+                QChar c = p.at(j);
+                if (state == 0) { // skip leading spaces
+                    if(!c.isSpace()) {
+                        newP += c;
+                        state++;
+                    }
+                } else if(state == 1) { // last token was not whitespace
+                    if(c.isSpace()) { // normalize to an actual space, from maybe \r\n\v\t etc.
+                        newP += ' ';
+                        state++;
+                    } else {
+                        newP += c;
+                    }
+                } else { // last token was whitespace
+                    if(!c.isSpace()) {
+                        newP += c;
+                        state--;
+                    }
+                }
+            }
+
+            const int newplen = newP.length();
+
+            // remove that last space we added
+            if(state >= 2 && newplen > 1 && newP.at(newplen - 1) == QChar(' ')) {
+                newP = newP.left(newplen - 2);
+            }
+
+            if(!newP.isNull()) {
+                if (newP != p)
+                    p = newP;
+            }
+        }
+
+        /*
+        Pass 2: Correct the first word to always be a type (this means removing
+        all whitespace from the type declaration) by looking ahead at the data.
+
+        Convert "Q_PROPERTY(QGraphicsObject * parent READ parentObject WRITE setParentItem NOTIFY parentChanged DESIGNABLE false)"
+        into "Q_PROPERTY(QGraphicsObject* parent READ parentObject WRITE setParentItem NOTIFY parentChanged DESIGNABLE false)"
+
+        moc.exe doesn't allow any comma in the property spec string, we do just in case
+        that changes someday since it can be part of a type with multiple template info.
+        */
+        {
+            QString newFirstWord = QString();
+            const int len = p.length();
+
+            /*
+            0 = start (expect isalnum() || :)
+            1 = last-char-was-space (expect <*&)
+            2+ = inside-open-angle (expect isalnum() || : || <>*&, || ">")
+            */
+            int state = 0;
+
+            int j;
+            for (j = 0; j < len; j++) {
+                QChar c = p.at(j);
+                if (state == 0) {
+                    if (c.isLetterOrNumber() || c == QChar(':') || c == QChar('*') || c == QChar('&')) {
+                        newFirstWord += c;
+                    } else if(c == QChar('<')) {
+                        newFirstWord += c;
+                        state = 2;
+                    } else if (c.isSpace()) {
+                        state = 1;
+                    }
+                } else if (state == 1) {
+                    if (c == QChar('<')) {
+                        newFirstWord += c;
+                        state = 2;
+                    } else if (c == QChar('*') || c == QChar('&')) {
+                        newFirstWord += c;
+                    } else if (c.isSpace()) {
+                        /*
+                        Use-case from state==0: strictly speaking 2 space chars in a row are not allowed
+                        Use-case from state==2: we want to eat the space between 1st and 2nd word
+                        */
+                    } else { // if (c.isLetterOrNumber())
+                        // this is to be the 2nd word, so we are done
+                        break;
+                    }
+                } else if (state >= 2) {
+                    if (c.isLetterOrNumber() || c == QChar(':') || c == QChar('*') || c == QChar('&') || c == QChar(',')) {
+                        newFirstWord += c;
+                    } else if (c == QChar('<')) {
+                        newFirstWord += c;
+                        state++;
+                    } else if (c == QChar('>')) {
+                        newFirstWord += c;
+                        state--;
+                    } else if (c.isSpace()) {
+                        // nop - strictly speaking space is only allowed around non-isalnum() chars
+                    } else {
+                        qDebug() << "Q_PROPERTY() parse error p=" << p;
+                        newFirstWord = QString(); // abort
+                        break;
+                    }
+                }
+            }
+            // cut length i from left(), stitch newFirstWord
+            if(!newFirstWord.isNull()) {
+                QString newP = newFirstWord + ' ' + p.mid(j);
+                if (newP != p)
+                    p = newP;
+            }
+        }
+
+        /*
+        Pass 3: Split by space character then normalize parentesis by joining
+        expression parts into single elements.
+
+        "FooClass*" "foo" "READ" "(expr" "!=" "0)" "WRITE" "setFoo"
+
+        becomes:
+
+        "FooClass*" "foo" "READ" "(expr != 0)" "WRITE" "setFoo"
+
+        This is known to allow correct parsing of some Q_PROPERTY in QToolBar.
+        */
         QStringList l = p.split(QLatin1String(" "));
+        {
+            QStringList newL = QStringList();
+            const int l_size = l.size();
+            int nest = 0;
+            QString newItem = QString(); // recombined item
+            for (int j = 0; j < l_size; j++) {
+                const QString item = l.at(j); // original item
+                const int item_length = item.length();
+                for (int k = 0; k < item_length; k++) {
+                    const QChar ch = item.at(k);
+                    if (ch == QChar('('))
+                        nest++;
+                    else if (ch == QChar(')'))
+                        nest--;
+                }
+                if (newItem.isNull()) {
+                    newItem = item;
+                } else {
+                    // only add spaces between parts we join
+                    newItem += ' ';
+                    newItem += item;
+                }
+                if(nest == 0) {
+                    newL.append(newItem);
+                    newItem = QString(); // set to null
+                }
+            }
+            if (!newItem.isNull())
+                newL.append(newItem);
+
+            l = newL;
+        }
 
 
         QStringList qualifiedScopeName = currentScope()->qualifiedName();
@@ -2316,7 +2488,7 @@ void AbstractMetaBuilder::parseQ_Property(AbstractMetaClass *meta_class, const Q
             TypeInfo info;
             info.setQualifiedName((scope + l.at(0)).split("::"));
 
-            type = translateType(info, &ok);
+            type = translateType(info, &ok, "parseQ_Property '" + qualifiedScopeName.join("::") + "' " + p);
             if (type != 0 && ok) {
                 break;
             }
@@ -2335,14 +2507,26 @@ void AbstractMetaBuilder::parseQ_Property(AbstractMetaClass *meta_class, const Q
         spec->setIndex(i);
 
         for (int pos = 2; pos + 1 < l.size(); pos += 2) {
+            // I have seen DESIGNABLE and SCRIPTABLE examples that do not have
+            //  a true/false after but another keyword.
             if (l.at(pos) == QLatin1String("READ"))
                 spec->setRead(l.at(pos + 1));
             else if (l.at(pos) == QLatin1String("WRITE"))
                 spec->setWrite(l.at(pos + 1));
             else if (l.at(pos) == QLatin1String("DESIGNABLE"))
                 spec->setDesignable(l.at(pos + 1));
+            else if (l.at(pos) == QLatin1String("SCRIPTABLE"))
+                spec->setScriptable(l.at(pos + 1));
             else if (l.at(pos) == QLatin1String("RESET"))
                 spec->setReset(l.at(pos + 1));
+            else if (l.at(pos) == QLatin1String("NOTIFY"))
+                spec->setNotify(l.at(pos + 1));
+            else if (l.at(pos) == QLatin1String("USER"))
+                spec->setUser(l.at(pos + 1));
+            else if (l.at(pos) == QLatin1String("STORED"))
+                spec->setStored(l.at(pos + 1));
+            else
+                qDebug() << "WARNING: Q_PROPERTY(" << spec->name() << ", " << typeName << "): unknown aspect " << l.at(pos);
         }
 
         meta_class->addPropertySpec(spec);

@@ -93,6 +93,7 @@ bool GeneratorSetJava::readParameters(const QMap<QString, QString> args) {
     no_metainfo = args.contains("no-metainfo");
     build_class_list = args.contains("build-class-list");
     native_jump_table = args.contains("native-jump-table");
+    qtjambi_debug_tools = args.contains("qtjambi-debug-tools");
 
     if (args.contains("build-qdoc-japi")) {
         no_java = true;
@@ -174,7 +175,7 @@ QString GeneratorSetJava::generate() {
         java_generator->setDocumentationEnabled(docs_enabled);
         java_generator->setNativeJumpTable(native_jump_table);
         if (!javaOutDir.isNull())
-            java_generator->setOutputDirectory(javaOutDir);
+            java_generator->setJavaOutputDirectory(javaOutDir);
         if (!outDir.isNull())
             java_generator->setLogOutputDirectory(outDir);
         generators << java_generator;
@@ -185,7 +186,7 @@ QString GeneratorSetJava::generate() {
     if (!no_cpp_h) {
         cpp_header_generator = new CppHeaderGenerator(priGenerator);
         if (!cppOutDir.isNull())
-            cpp_header_generator->setOutputDirectory(cppOutDir);
+            cpp_header_generator->setCppOutputDirectory(cppOutDir);
         generators << cpp_header_generator;
         contexts << "CppHeaderGenerator";
     }
@@ -193,8 +194,9 @@ QString GeneratorSetJava::generate() {
     if (!no_cpp_impl) {
         cpp_impl_generator = new CppImplGenerator(priGenerator);
         cpp_impl_generator->setNativeJumpTable(native_jump_table);
+        cpp_impl_generator->setQtJambiDebugTools(qtjambi_debug_tools);
         if (!cppOutDir.isNull())
-            cpp_impl_generator->setOutputDirectory(cppOutDir);
+            cpp_impl_generator->setCppOutputDirectory(cppOutDir);
         generators << cpp_impl_generator;
         contexts << "CppImplGenerator";
     }
@@ -207,6 +209,7 @@ QString GeneratorSetJava::generate() {
 
     if (!no_metainfo) {
         metainfo = new MetaInfoGenerator(priGenerator);
+        metainfo->setQtJambiDebugTools(qtjambi_debug_tools);
         if (!cppOutDir.isNull())
             metainfo->setCppOutputDirectory(cppOutDir);
         if (!javaOutDir.isNull())
@@ -223,7 +226,7 @@ QString GeneratorSetJava::generate() {
     }
 
     if (!cppOutDir.isNull())
-        priGenerator->setOutputDirectory(cppOutDir);
+        priGenerator->setCppOutputDirectory(cppOutDir);
     generators << priGenerator;
     contexts << "PriGenerator";
 
@@ -292,6 +295,7 @@ void dumpMetaJavaType(const AbstractMetaType *type) {
         if (type->isQObject()) printf(" q_obj");
         if (type->isNativePointer()) printf(" n_ptr");
         if (type->isTargetLangString()) printf(" java_string");
+        if (type->isTargetLangStringRef()) printf(" java_string");
         if (type->isConstant()) printf(" const");
         printf("]");
     }

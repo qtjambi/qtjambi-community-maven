@@ -62,7 +62,7 @@ MetaInfoGenerator::MetaInfoGenerator(PriGenerator *pri):
 QString MetaInfoGenerator::subDirectoryForPackage(const QString &package, OutputDirectoryType type) const {
     switch (type) {
         case CppDirectory:
-            return "cpp/" + QString(package).replace(".", "_") + "/";
+            return QString(package).replace(".", "_") + "/";
         case JavaDirectory:
             return QString(package).replace(".", "/");
         default:
@@ -286,7 +286,7 @@ QStringList MetaInfoGenerator::writePolymorphicHandler(QTextStream &s, const QSt
                         handlers.append(handler);
 
                         s << "static bool polymorphichandler_" << handler
-                        << "(const void *ptr, char **class_name, char **package)" << endl
+                        << "(const void *ptr, const char **class_name, const char **package)" << endl
                         << "{" << endl
                         << "    Q_ASSERT(ptr != 0);" << endl
                         << "    " << cls->qualifiedCppName() << " *object = ("
@@ -321,16 +321,23 @@ QStringList MetaInfoGenerator::writePolymorphicHandler(QTextStream &s, const QSt
     return handlers;
 }
 
-#if defined(QTJAMBI_DEBUG_TOOLS)
+// This is only needed when qtJambiDebugTools() is set
 void MetaInfoGenerator::writeNameLiteral(QTextStream &s, const TypeEntry *entry, const QString &fileName) {
     static QSet<QString> used;
 
-    if (!used.contains(fileName + ":" + entry->name())) {
-        s << "char __name_" << QString(entry->name()).replace(':', '_').replace(' ', '_') << "[] = \"" << entry->name() << "\";" << endl;
-        used.insert(fileName + ":" + entry->name());
+    const QString key (fileName + ":" + entry->name());
+    const bool exists = used.contains(key);
+    if (exists)		/* If it already exists comment out the repeats */
+        s << "/* ";
+    if (!exists) {
+        // This can not be made 'static' or 'const' due to compile failure
+        s << "char __name_" << QString(entry->name()).replace(':', '_').replace(' ', '_') << "[] = \"" << entry->name() << "\";";
+        used.insert(key);
     }
+    if (exists)
+        s << " */";
+    s << endl;
 }
-#endif
 
 void MetaInfoGenerator::writeCppFile() {
     TypeEntryHash entries = TypeDatabase::instance()->allEntries();
@@ -350,22 +357,25 @@ void MetaInfoGenerator::writeCppFile() {
             writeIncludeStatements(f->stream, classList, cls->package());
             f->stream << endl;
 
-#if defined(QTJAMBI_DEBUG_TOOLS)
-            // Write the generic destructors and constructors
-            f->stream << "template <typename T, const char *NAME>" << endl
-            << "void genericDestructor(void *t)" << endl
-            << "{" << endl
-            << "    delete (T *) t;" << endl
-            << "    qtjambi_increase_destructorFunctionCalledCount(QString::fromLatin1(NAME));" << endl
-            << "}" << endl << endl
-            << "template <typename T>" << endl
-            << "void *genericConstructor(const void *t)" << endl
-            << "{" << endl
-            << "    if (!t)" << endl
-            << "        return new T;" << endl
-            << "    return new T(*reinterpret_cast<const T *>(t));" << endl
-            << "}" << endl;
-#endif
+            if (qtJambiDebugTools()) {
+                f->stream << "#if defined(QTJAMBI_DEBUG_TOOLS)" << endl
+                // Write the generic destructors and constructors
+                << "template <typename T, const char *NAME>" << endl
+                << "static void qtjambiGenericDestructor(T *t)" << endl
+                << "{" << endl
+                << "    delete t;" << endl
+                << "    qtjambi_increase_destructorFunctionCalledCount(QString::fromLatin1(NAME));" << endl
+                << "}" << endl
+                << endl
+                << "template <typename T>" << endl
+                << "static void *qtjambiGenericConstructor(const T *t)" << endl
+                << "{" << endl
+                << "    if (!t)" << endl
+                << "        return new T();" << endl
+                << "    return new T(*static_cast<const T *>(t));" << endl
+                << "}" << endl
+                << "#endif /* QTJAMBI_DEBUG_TOOLS */" << endl;
+            }
 
 
             fileHash.insert(cls->package(), f);
@@ -388,10 +398,13 @@ void MetaInfoGenerator::writeCppFile() {
                 classes_with_polymorphic_id.append(cls);
         }
 
-#if defined(QTJAMBI_DEBUG_TOOLS)
-        if (cls->typeEntry()->isValue() && shouldGenerate(cls->typeEntry()))
-            writeNameLiteral(f->stream, cls->typeEntry(), f->name());
-#endif
+        if (qtJambiDebugTools()) {
+            if (cls->typeEntry()->isValue() && shouldGenerate(cls->typeEntry())) {
+                f->stream << "#if defined(QTJAMBI_DEBUG_TOOLS)" << endl;
+                writeNameLiteral(f->stream, cls->typeEntry(), f->name());
+                f->stream << "#endif /* QTJAMBI_DEBUG_TOOLS */" << endl;
+            }
+        }
     }
 
     QHash<QString, QStringList> handlers_to_register;
@@ -412,9 +425,11 @@ void MetaInfoGenerator::writeCppFile() {
             foreach(TypeEntry *entry, entries) {
                 if (shouldGenerate(entry) && entry->isPrimitive()) {
                     writeCustomStructors(f->stream, entry);
-#if defined(QTJAMBI_DEBUG_TOOLS)
-                    writeNameLiteral(f->stream, entry, f->name());
-#endif
+                    if (qtJambiDebugTools()) {
+                        f->stream << "#if defined(QTJAMBI_DEBUG_TOOLS)" << endl;
+                        writeNameLiteral(f->stream, entry, f->name());
+                        f->stream << "#endif /* QTJAMBI_DEBUG_TOOLS */" << endl;
+                    }
                 }
             }
         }
@@ -428,6 +443,7 @@ void MetaInfoGenerator::writeCppFile() {
                 if (entry &&
                         ((shouldGenerate(entry) && entry->isPrimitive())
                          || entry->isString()
+                         || entry->isStringRef()
                          || entry->isChar())) {
                     writeInitialization(f->stream, entry, 0);
                 }
@@ -517,14 +533,16 @@ void MetaInfoGenerator::writeDestructors(QTextStream &s, const AbstractMetaClass
     if (clsWithPublicDestructor != 0) {
         const ComplexTypeEntry *entry = cls->typeEntry();
         if ((entry->codeGeneration() & TypeEntry::GenerateCode) != 0) {
-            s   << "void destructor_" << entry->javaPackage().replace(".", "_")  << "_"
+            s   << "static void destructor_" << entry->javaPackage().replace(".", "_")  << "_"
             << entry->lookupName().replace(".", "_").replace("$", "_") << "(void *ptr)" << endl
             << "{" << endl
             << "    delete reinterpret_cast<" << clsWithPublicDestructor->qualifiedCppName() << " *>(ptr);" << endl;
 
-#if defined(QTJAMBI_DEBUG_TOOLS)
-            s   << "    qtjambi_increase_destructorFunctionCalledCount(QString::fromLatin1(\"" << cls->name() << "\"));" << endl;
-#endif
+            if (qtJambiDebugTools()) {
+                s << "#if defined(QTJAMBI_DEBUG_TOOLS)" << endl
+                << "    qtjambi_increase_destructorFunctionCalledCount(QString::fromLatin1(\"" << cls->name() << "\"));" << endl
+                << "#endif /* QTJAMBI_DEBUG_TOOLS */" << endl;
+            }
 
             s   << "}" << endl << endl;
         }
@@ -588,7 +606,7 @@ void MetaInfoGenerator::writeLibraryInitializers() {
                                 "__qt_initLibrary", "void");
             QTextStream &s = fileOut.stream;
             s << "#include \"metainfo.h\"" << endl
-            << "#include \"qtjambi_global.h\"" << endl << endl
+            << "#include <qtjambi/qtjambi_global.h>" << endl << endl
             << signature << "(JNIEnv *, jclass)" << endl
             << "{" << endl
             << "    ";
@@ -640,34 +658,44 @@ void MetaInfoGenerator::writeLibraryInitializers() {
     }
 }
 
-void MetaInfoGenerator::writeInclude(QTextStream &s, const Include &inc) {
+void MetaInfoGenerator::writeInclude(QTextStream &s, const Include &inc, QSet<QString> &dedupe) {
     if (inc.name.isEmpty())
         return;
 
-    s << "#include ";
+    QString incString;
     if (inc.type == Include::LocalPath)
-        s << "\"" << inc.name << "\"";
+        incString = "\"" + inc.name + "\"";
     else
-        s << "<" << inc.name << ">";
-    s << endl;
+        incString = "<" + inc.name + ">";
+
+    if (dedupe.contains(incString))
+        return;    // no need to emit this #include it is already in the generared file
+
+    dedupe.insert(incString);
+
+    s << "#include " << incString << endl;
 }
 
 void MetaInfoGenerator::writeIncludeStatements(QTextStream &s, const AbstractMetaClassList &classList,
         const QString &package) {
-    writeInclude(s, Include(Include::LocalPath, headerFilename()));
-    writeInclude(s, Include(Include::IncludePath, "QMetaType"));
-    writeInclude(s, Include(Include::IncludePath, "QString"));
-    writeInclude(s, Include(Include::IncludePath, "QLatin1String"));
-    writeInclude(s, Include(Include::IncludePath, "QHash"));
-    writeInclude(s, Include(Include::IncludePath, "QReadWriteLock"));
-    writeInclude(s, Include(Include::IncludePath, "QReadLocker"));
-    writeInclude(s, Include(Include::IncludePath, "QWriteLocker"));
-    writeInclude(s, Include(Include::IncludePath, "qtjambi_cache.h"));
-    writeInclude(s, Include(Include::IncludePath, "qtjambi_core.h"));
+    QSet<QString> dedupe = QSet<QString>();
 
-#if defined(QTJAMBI_DEBUG_TOOLS)
-    writeInclude(s, Include(Include::IncludePath, "qtjambidebugtools_p.h"));
-#endif
+    writeInclude(s, Include(Include::LocalPath, headerFilename()), dedupe);
+    writeInclude(s, Include(Include::IncludePath, "QtCore/QMetaType"), dedupe);
+    writeInclude(s, Include(Include::IncludePath, "QtCore/QString"), dedupe);
+    writeInclude(s, Include(Include::IncludePath, "QtCore/QLatin1String"), dedupe);
+    writeInclude(s, Include(Include::IncludePath, "QtCore/QHash"), dedupe);
+    writeInclude(s, Include(Include::IncludePath, "QtCore/QReadWriteLock"), dedupe);
+    writeInclude(s, Include(Include::IncludePath, "QtCore/QReadLocker"), dedupe);
+    writeInclude(s, Include(Include::IncludePath, "QtCore/QWriteLocker"), dedupe);
+    writeInclude(s, Include(Include::IncludePath, "qtjambi/qtjambi_cache.h"), dedupe);
+    writeInclude(s, Include(Include::IncludePath, "qtjambi/qtjambi_core.h"), dedupe);
+
+    if (qtJambiDebugTools()) {
+        s << "#if defined(QTJAMBI_DEBUG_TOOLS)" << endl;
+        writeInclude(s, Include(Include::IncludePath, "qtjambi/qtjambidebugtools_p.h"), dedupe);
+        s << "#endif /* QTJAMBI_DEBUG_TOOLS */" << endl;
+    }
 
     s << endl;
 
@@ -676,7 +704,7 @@ void MetaInfoGenerator::writeIncludeStatements(QTextStream &s, const AbstractMet
             const ComplexTypeEntry *ctype = cls->typeEntry();
 
             Include inc = ctype->include();
-            writeInclude(s, inc);
+            writeInclude(s, inc, dedupe);
         }
     }
 }
@@ -698,15 +726,19 @@ void MetaInfoGenerator::writeInitialization(QTextStream &s, const TypeEntry *ent
 
     QString constructorName = entry->customConstructor().name;
     QString destructorName = entry->customDestructor().name;
-#if defined(QTJAMBI_DEBUG_TOOLS)
 
-    if (constructorName.isEmpty())
-        constructorName = "genericConstructor<" + entry->qualifiedCppName() + ">";
 
-    if (destructorName.isEmpty())
-        destructorName = "genericDestructor<" + entry->qualifiedCppName() + ", __name_" + entry->name() + ">";
+    bool reasonQtJambiDebugToolsOnly = false;
+    if (qtJambiDebugTools()) {
+        if (constructorName.isEmpty() && destructorName.isEmpty())
+            reasonQtJambiDebugToolsOnly = true;		// ifdef the emitter
 
-#endif
+        if (constructorName.isEmpty())
+            constructorName = "qtjambiGenericConstructor<" + entry->qualifiedCppName() + ">";
+
+        if (destructorName.isEmpty())
+            destructorName = "qtjambiGenericDestructor<" + entry->qualifiedCppName() + ", __name_" + entry->name() + ">";
+    }
 
 
     if (constructorName.isEmpty() != destructorName.isEmpty()) {
@@ -725,7 +757,7 @@ void MetaInfoGenerator::writeInitialization(QTextStream &s, const TypeEntry *ent
     if (entry->isComplex()) {
         const ComplexTypeEntry *centry = static_cast<const ComplexTypeEntry *>(entry);
         if (centry->typeFlags() & ComplexTypeEntry::DeleteInMainThread)
-            s << "    registerDeletionPolicy(\"" << javaName << "\", DeletionPolicyDeleteInMainThread);" << endl;
+            s << "    registerObjectDeletionPolicy(\"" << javaName << "\", ObjectDeletionPolicyDeleteInMainThread);" << endl;
     }
 
     QString qtName = entry->qualifiedCppName();
@@ -750,17 +782,34 @@ void MetaInfoGenerator::writeInitialization(QTextStream &s, const TypeEntry *ent
     int metaType = QMetaType::type(entry->name().toLocal8Bit().constData());
     if (metaType != QMetaType::Void)
         return ;
+    if (entry->name() == "QStringRef")	// Special case, this does not have metaType number
+        return ;
 
-
+    // This variable exists so that the emitted code is the same with QTJAMBI_DEBUG_TOOLS
+    // is not defined during compilation.
+    bool emittedRegisterType = false;
     if (!constructorName.isEmpty() && !destructorName.isEmpty()) {
-        s << "    QMetaType::registerType(\"" << entry->qualifiedCppName() << "\"," << endl
-        << "                            reinterpret_cast<QMetaType::Destructor>("
+        QString registerTypeFunctionName = QString("QMetaType::registerType");
+        if (reasonQtJambiDebugToolsOnly)
+            s << "#if defined(QTJAMBI_DEBUG_TOOLS)" << endl;
+        s << "    " << registerTypeFunctionName << "(\"" << entry->qualifiedCppName() << "\"," << endl
+        << "                            reinterpret_cast<QMetaType::Destructor>( "
+        // This cast is needed by GCC 4.4.4 at least, to infer the correct type from the context
+        << "(void (*)(" << entry->qualifiedCppName() << " *)) "
         << destructorName
-        << ")," << endl
-        << "                            reinterpret_cast<QMetaType::Constructor>("
+        << " )," << endl
+        << "                            reinterpret_cast<QMetaType::Constructor>( "
+        // This cast is needed by GCC 4.4.4 at least, to infer the correct type from the context
+        << "(void *(*)(const " << entry->qualifiedCppName() << " *)) "
         << constructorName
-        << "));" << endl;
-    } else {
+        << " )" << endl
+        << ");" << endl;
+        emittedRegisterType = true;
+        if (reasonQtJambiDebugToolsOnly)
+            s << "#else /* QTJAMBI_DEBUG_TOOLS */" << endl;
+    }
+
+    if(reasonQtJambiDebugToolsOnly || !emittedRegisterType) {
         // Look for default constructor, required for qRegisterMetaType
         if (cls != 0) {
             AbstractMetaFunctionList functions = cls->queryFunctions(AbstractMetaClass::WasPublic | AbstractMetaClass::Constructors);
@@ -782,4 +831,8 @@ void MetaInfoGenerator::writeInitialization(QTextStream &s, const TypeEntry *ent
         s << "    qRegisterMetaType<" << entry->qualifiedCppName() << ">(\"" << entry->qualifiedCppName() << "\");" << endl;
     }
 
+    if (!constructorName.isEmpty() && !destructorName.isEmpty()) {	// PARANOID
+        if (reasonQtJambiDebugToolsOnly)
+            s << "#endif /* QTJAMBI_DEBUG_TOOLS */" << endl;
+    }
 }

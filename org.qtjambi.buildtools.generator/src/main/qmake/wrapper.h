@@ -18,6 +18,7 @@ class Wrapper {
         Wrapper(int argc, char *argv[]);
 
         static QString include_directory;
+        static bool qtjambi_debug_tools;
 
         int runJambiGenerator();
 
@@ -36,6 +37,7 @@ class Wrapper {
         QStringList rebuild_classes;
         GeneratorSet *gs;
         QMap< QString, QString > args;
+        QStringList includePathsList;
 
 };
 
