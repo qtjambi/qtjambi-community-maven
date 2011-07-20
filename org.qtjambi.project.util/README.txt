@@ -1,11 +1,11 @@
 
 Last Sync:
-	commit c2e8510c55eec3e5251795561911720e0c6f3dca
-	Merge: 189b7f1 4410cfd
-	Author: Darryl L. Miles <darryl.miles@darrylmiles.org>
-	Date:   Thu Jun 16 13:54:00 2011 +0100
-	
-	    Merge remote branch 'remotes/origin/merge-requests/27'
+	commit 65da77017c6f33c1dcdd50435118371f37e0e6da
+	Merge: 3d93ed4 d69db28
+	Author: Samu Voutilainen <smar@smar.fi>
+	Date:   Tue Jul 19 13:57:54 2011 +0300
+
+	    Merge commit 'refs/merge-requests/70' of git://gitorious.org/qt-jambi/qtjambi-community
 
 
 Steps:
@@ -25,6 +25,11 @@ Rebase history:
 	Author: Marius Brehler <marbre@linux.sungazer.de>
 	Date:   Tue Jun 14 16:45:41 2011 +0200
 
+	commit c2e8510c55eec3e5251795561911720e0c6f3dca
+	Merge: 189b7f1 4410cfd
+	Author: Darryl L. Miles <darryl.miles@darrylmiles.org>
+	Date:   Thu Jun 16 13:54:00 2011 +0100
+
 31-Apr-2011
 	faeedf3..050a8f7  master     -> origin/master
 	# noaction
@@ -37,3 +42,7 @@ Rebase history:
 	a55cbde..c2e8510  master     -> origin/master
 	# rebase/20110616_4util.patch
 	cd src/main/java/ && patch -p4 < ../../../../rebase/20110616_4util.patch
+
+19-Jul-2011
+	c2e8510..65da770  master     -> origin/master
+	# noaction
