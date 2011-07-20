@@ -11,6 +11,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
+import org.qtjambi.maven.plugins.jxe.JxeExecParam;
 import org.qtjambi.maven.plugins.jxe.JxeUtil;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
@@ -49,10 +50,6 @@ public class GenerateSourcesMojo extends AbstractMojo {
 	 */
 	private File qtIncludeDirectory;
 	/**
-	 * @parameter expression="${qt.lib.directory}" default-value="${qtsdk.home}/lib"
-	 */
-	private File qtLibDirectory;
-	/**
 	 * @parameter expression="${kde.phonon.directory}"
 	 */
 	private File kdePhononDirectory;
@@ -64,6 +61,10 @@ public class GenerateSourcesMojo extends AbstractMojo {
 	 * @parameter expression="${generator.args}"
 	 */
 	private String[] generatorArguments;
+	/**
+	 * @parameter expression="${generator.cwd}"
+	 */
+	private File generatorCurrentWorkingDirectory;
 
 	/**
 	 * @parameter expression="${project}"
@@ -95,6 +96,7 @@ public class GenerateSourcesMojo extends AbstractMojo {
 		// Process XML 
 		// Generate
 		getLog().info(GenerateSourcesMojo.class.getName() + " START");
+		getLog().debug("sysprop(\"user.dir\")=" + System.getProperty("user.dir"));
 		getLog().debug("typeSystemXml=" + typeSystemXml);
 		getLog().debug("masterHeaderInclude=" + masterHeaderInclude);
 		getLog().debug("inputDirectory=" + inputDirectory);
@@ -102,9 +104,9 @@ public class GenerateSourcesMojo extends AbstractMojo {
 		getLog().debug("javaOutputDirectory=" + javaOutputDirectory);
 		getLog().debug("outputDirectory=" + outputDirectory);
 		getLog().debug("qtIncludeDirectory=" + qtIncludeDirectory);
-		getLog().debug("qtLibDirectory=" + qtLibDirectory);
-		getLog().debug("kdePhononDirector=" + kdePhononDirectory);
+		getLog().debug("kdePhononDirectory=" + kdePhononDirectory);
 		getLog().debug("generatorArguments=" + Utils.debugStringArrayPretty(generatorArguments));
+		getLog().debug("generatorCurrentWorkingDirectory=" + generatorCurrentWorkingDirectory);
 
 		if(masterHeaderInclude == null || masterHeaderInclude.exists() == false) {
 			throw new MojoFailureException("generator.masterheaderinclude does not exist: " + masterHeaderInclude);
@@ -135,27 +137,26 @@ public class GenerateSourcesMojo extends AbstractMojo {
 		// run: *-jxe.jar
 
 		// Find the downloaded local copy of the *-jxe.jar
-		Artifact jxeFound = null;
-		int foundCount = 0;
+		List<Artifact> jxeFoundList = new ArrayList<Artifact>();
 		for(Artifact artifact : pluginArtifacts) {
 			// Search for generator-maven-plugin
 			//getLog().debug(artifact.getId() + " " + artifact.getFile());
 			String classifier = artifact.getClassifier();
 			if(classifier != null && classifier.compareToIgnoreCase("jxe") == 0) {
-				foundCount++;
-				if(foundCount == 1)
-					jxeFound = artifact;
-				else
-					jxeFound = null;
+				jxeFoundList.add(artifact);
 				//getLog().debug(" " + artifact.getClassifier() + " " + artifact.getFile());
 			}
 		}
-		if(foundCount == 0) {
+		if(jxeFoundList.size() == 0) {
 			throw new MojoFailureException("Unable to locate generator-jxe.jar");
-		} else if(foundCount > 1) {
+		} else if(jxeFoundList.size() > 1) {
+			for(Artifact a : jxeFoundList) {
+				getLog().error(" jxe found at " + a.toString());
+			}
 			throw new MojoFailureException("Found more than one classifier=jxe when searching for generator-jxe.jar");
 		}
 		File jxeExecutable = null;
+		Artifact jxeFound = jxeFoundList.get(0);
 		if(jxeFound != null) {
 			getLog().debug(jxeFound.toString() + " " + jxeFound.getFile());
 			jxeExecutable = jxeFound.getFile();
@@ -167,8 +168,6 @@ public class GenerateSourcesMojo extends AbstractMojo {
 			argList.add("--phonon-include=" + kdePhononDirectory.getAbsolutePath());
 		if(qtIncludeDirectory != null)
 			argList.add("--qt-include-directory=" + qtIncludeDirectory.getAbsolutePath());
-		if(qtLibDirectory != null)
-			argList.add("--qt-lib-directory=" + qtLibDirectory.getAbsolutePath());
 		if(inputDirectory != null)
 			argList.add("--input-directory=" + inputDirectory.getAbsolutePath());
 		if(outputDirectory != null)
@@ -199,8 +198,15 @@ public class GenerateSourcesMojo extends AbstractMojo {
 		String[] args = argList.toArray(new String[argList.size()]);
 
 		getLog().debug("jxeExecutable="+jxeExecutable);
-		getLog().debug("args"+args.toString());
-		Integer jxeExitStatus = JxeUtil.exec(jxeExecutable, args);
+		int i = 0;
+		for(String s : args) {
+			getLog().debug("arg[" + (i++) + "]=" + s);
+		}
+
+		JxeExecParam jxeExecParam = new JxeExecParam();
+		jxeExecParam.setCurrentWorkingDirectory(generatorCurrentWorkingDirectory);
+
+		Integer jxeExitStatus = JxeUtil.exec(jxeExecutable, args, jxeExecParam);
 
 		if(jxeExitStatus == null || jxeExitStatus != 0) {
 			getLog().info(jxeExecutable + " exitStatus=" + jxeExitStatus);

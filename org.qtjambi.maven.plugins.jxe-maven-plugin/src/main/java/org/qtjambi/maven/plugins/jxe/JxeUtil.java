@@ -12,11 +12,11 @@ import org.qtjambi.maven.plugins.jxe.util.StreamCopyThread;
 import org.qtjambi.maven.plugins.jxe.util.SystemInSelectable;
 
 public abstract class JxeUtil {
-	public static Integer exec(String targetExecutable, String[] args) {
-		return exec(new File(targetExecutable), args);
+	public static Integer exec(String targetExecutable, String[] args, JxeExecParam jxeExecParam) {
+		return exec(new File(targetExecutable), args, jxeExecParam);
 	}
 
-	public static Integer exec(File targetExecutable, String[] args) {
+	public static Integer exec(File targetExecutable, String[] args, JxeExecParam jxeExecParam) {
 		List<String> command = new ArrayList<String>();
 		command.add("java");
 		command.add("-jar");
@@ -26,7 +26,10 @@ public abstract class JxeUtil {
 		ProcessBuilder processBuilder = new ProcessBuilder(command);
 
 		Map<String,String> envvars = processBuilder.environment();
-		// NOOP we don't do anything with envvars
+		// NOOP we don't do anything with envvars  jxeExecParam
+
+		if(jxeExecParam.getCurrentWorkingDirectory() != null)
+			processBuilder.directory(jxeExecParam.getCurrentWorkingDirectory());
 
 		OutputStream stdinStream = null;
 		InputStream stdoutStream = null;
