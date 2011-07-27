@@ -2,6 +2,7 @@ package org.qtjambi.maven.plugins.utils.internal;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,14 @@ import org.qtjambi.maven.plugins.utils.resolvers.QtEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 // TODO: Dump available platforms, disambiguate
+// TODO: This is definitely wrote one version to throw away and start over
+//  ideas...
+//     step1) global detection phase (i.e. obtain the facts), full detect, or detect only things we need
+//     step2) dump detected
+//     step3) apply override (command line, properties, environment variable)
+//     step4) dump things changed (dump also duplicate/conflicting info and which is used)
+//     step5) 
+//   move things away from being coded, to being in property files loaded
 public class Arguments {
 	public static final String K_toolchain			= "toolchain";			// gcc, mingw, mingw_w64/mingw-w64, msvc/msvc2010, msvc.x64
 	public static final String K_cross_compile		= "cross_compile";
@@ -33,6 +42,8 @@ public class Arguments {
 	public static final String K_mingw_w64_home 	= "mingw_w64.home";		// preferred
 	public static final String K_mingw__w64_home	= "mingw-w64.home";
 	public static final String K_java_home			= "java.home";
+	public static final String K_java_home_target	= "java.home.target";
+	public static final String K_java_osarch_target	= "java.osarch.target";
 	public static final String K_jre_home			= "jre.home";
 	public static final String K_jdk_home			= "jdk.home";
 	// Easy way to modify path
@@ -56,11 +67,13 @@ public class Arguments {
 	public static final String K_MINGW_HOME			= "MINGW_HOME";
 	public static final String K_MINGW_W64_HOME		= "MINGW_W64_HOME";		// preferred
 	public static final String K_MINGW__W64_HOME	= "MINGW-W64_HOME";
-	public static final String K_JAVA_HOME			= "JAVA_HOME";
+	public static final String K_JAVA_HOME			= "JAVA_HOME";			// what maven/javac runs in
+	public static final String K_JAVA_HOME_TARGET	= "JAVA_HOME_TARGET";	// what we link JNI against
+	public static final String K_JAVA_OSARCH_TARGET	= "JAVA_OSARCH_TARGET";	// subdir name in $JAVA_HOME_TARGET/include/????
 	public static final String K_JRE_HOME			= "JRE_HOME";
 	public static final String K_JDK_HOME			= "JDK_HOME";
 
-	private static final String[] crossCompileTryList = {
+	private static final String[] crossCompileTryList = {		// FIXME: Move to text resource
 		"x86_64-w64-mingw32-"
 	};
 
@@ -72,34 +85,38 @@ public class Arguments {
 	private List<String> pathAppend;
 	private List<String> ldLibraryPathAppend;
 	private List<String> dyldLibraryPathAppend;
-	private Map<String,String> envvarGlobal;
-	private Map<String,String> envvarQt;		// :+-= prefix (append pathSep, append verbatim, unset, set verbatim)
-	private Map<String,String> envvarGcc;
-	private Map<String,String> envvarMsvc;
-	private Map<String,String> envvarMingw;
-	private Map<String,String> envvarMingwW64;
-	private Map<String,String> envvarJava;
+	private Map<String,Object> envvarGlobal;
+	private Map<String,Object> envvarQt;		// :+-= prefix (append pathSep, append verbatim, unset, set verbatim)
+	private Map<String,Object> envvarGcc;
+	private Map<String,Object> envvarMsvc;
+	private Map<String,Object> envvarMingw;
+	private Map<String,Object> envvarMingwW64;
+	private Map<String,Object> envvarJava;
 
 	private String qtsdkHome;
 	private String msvcHome;
 	private String mingwHome;
 	private String mingwW64Home;
 	private boolean javaHomeSet;
+	private boolean javaHomeTargetSet;
+	private boolean javaOsarchTargetSet;
 	private String jreHome;
 	private String jdkHome;
+	private String javaHomeTarget;
+	private String javaOsarchTarget;
 
 	public Arguments() {
 		pathAppend = new ArrayList<String>();
 		ldLibraryPathAppend = new ArrayList<String>();
 		dyldLibraryPathAppend = new ArrayList<String>();
 
-		envvarGlobal = new HashMap<String, String>();
-		envvarQt = new HashMap<String, String>();
-		envvarMsvc = new HashMap<String, String>();
-		envvarGcc = new HashMap<String, String>();
-		envvarMingw = new HashMap<String, String>();
-		envvarMingwW64 = new HashMap<String, String>();
-		envvarJava = new HashMap<String, String>();
+		envvarGlobal = new HashMap<String, Object>();
+		envvarQt = new HashMap<String, Object>();
+		envvarMsvc = new HashMap<String, Object>();
+		envvarGcc = new HashMap<String, Object>();
+		envvarMingw = new HashMap<String, Object>();
+		envvarMingwW64 = new HashMap<String, Object>();
+		envvarJava = new HashMap<String, Object>();
 	}
 
 	public void setup(Platform platform, Log log) throws MojoFailureException {
@@ -157,54 +174,54 @@ public class Arguments {
 			}
 		}
 
-		Map<String,String> tmpMap;
+		Map<String,String[]> tmpMap;
 		tmpMap = filterSystemProperties(K_path_append);
-		for(String v : tmpMap.values())
-			pathAppend.add(v);					// ignore key
+		for(String[] vA : tmpMap.values())
+			pathAppend.addAll(Arrays.asList(vA));			// ignore key
 
 		tmpMap = filterSystemProperties(K_ld_library_path_append);
-		for(String v : tmpMap.values())
-			ldLibraryPathAppend.add(v);			// ignore key
+		for(String[] v : tmpMap.values())
+			ldLibraryPathAppend.addAll(Arrays.asList(v));	// ignore key
 
 		tmpMap = filterSystemProperties(K_dyld_library_path_append);
-		for(String v : tmpMap.values())
-			dyldLibraryPathAppend.add(v);		// ignore key
+		for(String[] v : tmpMap.values())
+			dyldLibraryPathAppend.addAll(Arrays.asList(v));	// ignore key
 
 		// FIXME: If there are no explicit settings we want to auto-apply some
 
 		tmpMap = filterSystemProperties(K_envvar_global);
-		for(Map.Entry<String,String> e : tmpMap.entrySet())
+		for(Map.Entry<String,String[]> e : tmpMap.entrySet())
 			envvarGlobal.put(e.getKey(), e.getValue());
 
 		// envvar.qt.PATH.0=:${qt.home}/bin
 		// envvar.qt.PATH.0=:${qt.home}/lib
 		tmpMap = filterSystemProperties(K_envvar_qt);
-		for(Map.Entry<String,String> e : tmpMap.entrySet())
+		for(Map.Entry<String,String[]> e : tmpMap.entrySet())
 			envvarQt.put(e.getKey(), e.getValue());
 
 		tmpMap = filterSystemProperties(K_envvar_gcc);
-		for(Map.Entry<String,String> e : tmpMap.entrySet())
+		for(Map.Entry<String,String[]> e : tmpMap.entrySet())
 			envvarGcc.put(e.getKey(), e.getValue());
 
 		// envvar.msvc.PATH.0=:${msvc.home}\VC\bin
 		// more...
 		tmpMap = filterSystemProperties(K_envvar_msvc);
-		for(Map.Entry<String,String> e : tmpMap.entrySet())
+		for(Map.Entry<String,String[]> e : tmpMap.entrySet())
 			envvarMsvc.put(e.getKey(), e.getValue());
 
 		// envvar.mingw.PATH.0=:${mingw.home}\bin
 		tmpMap = filterSystemProperties(K_envvar_mingw);
-		for(Map.Entry<String,String> e : tmpMap.entrySet())
+		for(Map.Entry<String,String[]> e : tmpMap.entrySet())
 			envvarMingw.put(e.getKey(), e.getValue());
 
 		// envvar.mingw_w64.PATH.0=:${mingw_w64.home}\bin
 		tmpMap = filterSystemProperties(K_envvar_mingw_w64);
-		for(Map.Entry<String,String> e : tmpMap.entrySet())
+		for(Map.Entry<String,String[]> e : tmpMap.entrySet())
 			envvarMingwW64.put(e.getKey(), e.getValue());
 
 		// envvar.java.PATH.0=:${java.home}\bin
 		tmpMap = filterSystemProperties(K_envvar_java);
-		for(Map.Entry<String,String> e : tmpMap.entrySet())
+		for(Map.Entry<String,String[]> e : tmpMap.entrySet())
 			envvarJava.put(e.getKey(), e.getValue());
 
 		if(toolchain == null) {		// Attempt to auto-detect
@@ -229,6 +246,9 @@ public class Arguments {
 		platform.setToolchain(toolchain);
 	}
 
+	// FIXME: Consider making these available via a Factory pattern (setup on demand) so changes
+	//  to config can be made easier.  Maybe lock down the config on first real use (by warning
+	//  about modifications made after lockdown)
 	public void setupResolvers(Platform platform) {
 		DefaultEnvironmentResolver globalEnvironmentResolver = new DefaultEnvironmentResolver(platform);
 		{
@@ -332,18 +352,19 @@ public class Arguments {
 		platform.setQtEnvironmentResolver(qtEnvironmentResolver);
 	}
 
-	public Map<String,String> filterSystemProperties(String prefix) {
+	public Map<String,String[]> filterSystemProperties(String prefix) {
 		Properties props = System.getProperties();
 		final String prefixDot = prefix + ".";
-		Map<String,String> map = new HashMap<String,String>();
+		Map<String,String[]> map = new HashMap<String,String[]>();
 		for(Map.Entry<Object, Object> e : props.entrySet()) {
 			Object kObj = e.getKey();
 			String k = kObj.toString();
 			Object vObj = e.getValue();
 			String v = vObj.toString();
 
+			boolean store = false;
 			if(k.equals(prefix)) {
-				map.put(k, v);
+				store = true;
 			} else if(k.startsWith(prefixDot)) {
 				int o = prefixDot.length();
 				String sk = k.substring(o);
@@ -356,8 +377,13 @@ public class Arguments {
 						//newKey = sk;		// "prefix.0" => "0"
 					}
 				}
-
-				map.put(sk, v);
+				k = sk;
+				store = true;
+			}
+			if(store) {
+				String[] sA = map.get(k);
+				sA = Utils.safeStringArrayAppend(sA, v);
+				map.put(k, sA);
 			}
 		}
 		return map;
@@ -453,6 +479,48 @@ public class Arguments {
 				if(log != null)
 					log.debug(" envvar." + K_JAVA_HOME + ": is set \"" + s + "\"");
 				checkJavaHome(platform, s, log);
+			}
+		}
+
+		if(javaHomeTargetSet == false) {
+			s = System.getProperty(K_java_home_target);
+			if(s != null) {
+				if(log != null)
+					log.debug(K_java_home_target + ": is set \"" + s + "\"");
+				// This will auto-detect JRE/JDK and set (if not already found and set)
+				checkJavaHomeTarget(platform, s, log);
+			}
+		}
+		if(javaHomeTargetSet == false) {
+			s = System.getenv(K_JAVA_HOME_TARGET);
+			if(s != null) {
+				if(log != null)
+					log.debug(" envvar." + K_JAVA_HOME_TARGET + ": is set \"" + s + "\"");
+				checkJavaHomeTarget(platform, s, log);
+			}
+		}
+
+		if(javaOsarchTargetSet == false) {
+			s = System.getProperty(K_java_osarch_target);
+			if(s != null) {
+				if(log != null)
+					log.debug(K_java_osarch_target + ": is set \"" + s + "\"");
+				// This will auto-detect JRE/JDK and set (if not already found and set)
+				if(checkJavaOsarchTarget(platform, javaHomeTarget, s, log)) {
+					javaOsarchTarget = s;
+					javaOsarchTargetSet = true;
+				}
+			}
+		}
+		if(javaOsarchTargetSet == false) {
+			s = System.getenv(K_JAVA_OSARCH_TARGET);
+			if(s != null) {
+				if(log != null)
+					log.debug(" envvar." + K_JAVA_OSARCH_TARGET + ": is set \"" + s + "\"");
+				if(checkJavaOsarchTarget(platform, javaHomeTarget, s, log)) {
+					javaOsarchTarget = s;
+					javaOsarchTargetSet = true;
+				}
 			}
 		}
 
@@ -578,6 +646,81 @@ public class Arguments {
 		} else {
 			if(log != null)
 				log.debug(" Unable to detect if this is JRE or JDK at " + dir.getAbsolutePath());
+			bf = false;
+		}
+
+		return bf;
+	}
+
+	private boolean checkJavaHomeTarget(Platform platform, String path, Log log) {
+		File dir = new File(path);
+		if(!checkDirectoryExists(dir, log))
+			return false;
+		if(!checkIsDirectory(dir, log))
+			return false;
+
+		File dirBin = new File(dir, "bin");
+		if(!checkDirectoryExists(dirBin, log))
+			return false;
+
+		// Both JRE and JDK have this
+		File exeJava = new File(dir, Utils.resolveFileSeparator(new String[] { "bin", platform.makeExeFilename("java") }));
+		if(!checkFileExists(exeJava, log))
+			return false;
+		if(!checkIsFile(exeJava, log))
+			return false;
+
+		boolean bf = true;
+
+		// Detect if JDK or JRE
+		// $JAVA_HOME/lib/tools.jar  (JDK)
+		// $JAVA_HOME/jre/lib/rt.jar  (JDK)
+		// or
+		// $JAVA_HOME/lib/rt.jar  (JRE)
+		File libToolsJar = new File(dir, Utils.resolveFileSeparator(new String[] { "lib", "tools.jar" }));
+		File jreLibRtJar = new File(dir, Utils.resolveFileSeparator(new String[] { "jre", "lib", "rt.jar" }));
+		File libRtJar = new File(dir, Utils.resolveFileSeparator(new String[] { "lib", "rt.jar" }));
+		if(libToolsJar.exists() && libToolsJar.isFile() && jreLibRtJar.exists() && jreLibRtJar.isFile()) {
+			// Looks like a JDK
+			if(javaHomeTarget == null) {
+				javaHomeTarget = dir.getAbsolutePath();
+				javaHomeTargetSet = true;
+				if(log != null)
+					log.debug(" Setting java.home.target with " + dir.getAbsolutePath());
+			}
+		} else if(libRtJar.exists() && libRtJar.isFile()) {
+			if(log != null)
+				log.debug(" Unable to detect if this is JDK at " + dir.getAbsolutePath() + "; looks like a JRE, must have JDK");
+			bf = false;
+		} else {
+			if(log != null)
+				log.debug(" Unable to detect if this is JDK at " + dir.getAbsolutePath());
+			bf = false;
+		}
+
+		return bf;
+	}
+
+	private boolean checkJavaOsarchTarget(Platform platform, String javaHome, String osarch, Log log) {
+		File dir = new File(javaHome);
+		if(!checkDirectoryExists(dir, log))
+			return false;
+		if(!checkIsDirectory(dir, log))
+			return false;
+
+		File includeDir = new File(dir, "include");
+		if(!checkDirectoryExists(includeDir, log))
+			return false;
+
+		boolean bf = true;
+
+		File osarchDir = new File(dir, osarch);
+		if(!checkDirectoryExists(osarchDir, log))
+			return false;
+
+		File jniMdHFile = new File(osarchDir, "jni_md.h");
+		if(!jniMdHFile.exists()) {
+			log.warn(" Expected to find file: " + osarchDir.getAbsolutePath() + File.pathSeparator + "jni_md.h");
 			bf = false;
 		}
 
@@ -808,6 +951,7 @@ public class Arguments {
 
 		boolean mingwLooksGood = true;
 		boolean searchCrossCompile = false;
+		String autoDetectCrossCompilePrefix = null;
 
 		File exeGcc = new File(dir, Utils.resolveFileSeparator(new String[] { "bin", platform.makeExeFilename("gcc") }));
 		if(!checkFileExists(exeGcc, log)) {
@@ -829,7 +973,22 @@ public class Arguments {
 						mingwLooksGood = false;
 				}
 			} else {
-				mingwLooksGood = false;
+				boolean found = false;
+				for(String testPrefix : crossCompileTryList) {
+					String exeFilename = testPrefix + "gcc";
+					File exeCrossCompileGcc = new File(dir, Utils.resolveFileSeparator(new String[] { "bin", platform.makeExeFilename(exeFilename) }));
+					if(checkFileExists(exeCrossCompileGcc, log)) {
+						found = true;
+						autoDetectCrossCompilePrefix = testPrefix;
+					} else {
+						if(checkIsFile(exeCrossCompileGcc, log)) {
+							found = true;
+							autoDetectCrossCompilePrefix = testPrefix;
+						}
+					}
+				}
+				if(!found)
+					mingwLooksGood = false;
 			}
 		}
 
@@ -849,6 +1008,16 @@ public class Arguments {
 		}
 
 		if(mingwLooksGood) {
+			if(autoDetectCrossCompilePrefix != null) {
+				if(crossCompilePrefix != null && crossCompilePrefix.equals(autoDetectCrossCompilePrefix) == false) {
+					if(log != null)
+						log.warn(" auto-detected MINGW_W64 using cross-compile prefix: " + autoDetectCrossCompilePrefix + "; but set to CROSS_COMPILE=" + crossCompilePrefix);
+				} else {
+					if(log != null)
+						log.debug(" auto-detected MINGW_W64 using cross-compile prefix: " + autoDetectCrossCompilePrefix);
+					crossCompilePrefix = autoDetectCrossCompilePrefix;
+				}
+			}
 			mingwW64Home = dir.getAbsolutePath();
 			if(log != null)
 				log.debug(" Using mingw_w64.home with " + dir.getAbsolutePath());
@@ -908,6 +1077,28 @@ public class Arguments {
 		return qtMakespecs;
 	}
 
+	public String getJavaHome() {
+		if(javaHomeSet) {
+			if(jdkHome != null)
+				return jdkHome;
+			if(jreHome != null)
+				return jreHome;
+		}
+		return null;
+	}
+
+	public String resolveJavaHomeTarget() {
+		if(javaHomeTargetSet)
+			return javaHomeTarget;
+		if(javaHomeSet && jdkHome != null)
+			return jdkHome;
+		return null;
+	}
+
+	public String getJavaOsarchTarget() {
+		return javaOsarchTarget;
+	}
+
 	public List<String> getPathAppend() {
 		return pathAppend;
 	}
@@ -920,31 +1111,31 @@ public class Arguments {
 		return dyldLibraryPathAppend;
 	}
 
-	public Map<String, String> getEnvvarGlobal() {
+	public Map<String, Object> getEnvvarGlobal() {
 		return envvarGlobal;
 	}
 
-	public Map<String, String> getEnvvarQt() {
+	public Map<String, Object> getEnvvarQt() {
 		return envvarQt;
 	}
 
-	public Map<String, String> getEnvvarGcc() {
+	public Map<String, Object> getEnvvarGcc() {
 		return envvarGcc;
 	}
 
-	public Map<String, String> getEnvvarMsvc() {
+	public Map<String, Object> getEnvvarMsvc() {
 		return envvarMsvc;
 	}
 
-	public Map<String, String> getEnvvarMingw() {
+	public Map<String, Object> getEnvvarMingw() {
 		return envvarMingw;
 	}
 
-	public Map<String, String> getEnvvarMingwW64() {
+	public Map<String, Object> getEnvvarMingwW64() {
 		return envvarMingwW64;
 	}
 
-	public Map<String, String> getEnvvarJava() {
+	public Map<String, Object> getEnvvarJava() {
 		return envvarJava;
 	}
 

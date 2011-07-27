@@ -7,9 +7,9 @@ import java.util.Map;
 import org.qtjambi.maven.plugins.utils.IEnvironmentResolver;
 import org.qtjambi.maven.plugins.utils.Platform;
 import org.qtjambi.maven.plugins.utils.envvar.EnvironmentEditor;
+import org.qtjambi.maven.plugins.utils.envvar.EnvironmentOperation;
 import org.qtjambi.maven.plugins.utils.envvar.EnvironmentPathEditor;
-import org.qtjambi.maven.plugins.utils.envvar.OpPathAppend;
-import org.qtjambi.maven.plugins.utils.envvar.OpSet;
+import org.qtjambi.maven.plugins.utils.envvar.OpAppend;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 public class DefaultEnvironmentResolver implements IEnvironmentResolver {
@@ -61,30 +61,59 @@ public class DefaultEnvironmentResolver implements IEnvironmentResolver {
 	public void setPathAppend(List<String> pathAppend) {
 		if(pathAppend != null && pathAppend.size() > 0) {
 			for(String s : pathAppend)
-				pathEditor.add(new OpPathAppend(s));
+				pathEditor.addWithModifier(s, null);
 		}
 	}
 	public void setLdLibraryPathAppend(List<String> ldLibraryPathAppend) {
 		if(ldLibraryPathAppend != null && ldLibraryPathAppend.size() > 0) {
 			for(String s : ldLibraryPathAppend)
-				envvarEditor.add(K_LD_LIBRARY_PATH, new OpPathAppend(s));
+				envvarEditor.addPathEditorWithModifier(K_LD_LIBRARY_PATH, s, null);
 		}
 	}
 	public void setDyldLibraryPathAppend(List<String> dyldLibraryPathAppend) {
 		if(dyldLibraryPathAppend != null && dyldLibraryPathAppend.size() > 0) {
 			for(String s : dyldLibraryPathAppend)
-				envvarEditor.add(K_DYLD_LIBRARY_PATH, new OpPathAppend(s));
+				envvarEditor.addPathEditorWithModifier(K_DYLD_LIBRARY_PATH, s, null);
 		}
 	}
-	public void setEnvvarMap(Map<String, String> envvarMap) {
+
+	private void addOneRule(String k, Object vObj, boolean first) {
+		if(k.equals(K_PATH) || k.equals(K_LD_LIBRARY_PATH) || k.equals(K_DYLD_LIBRARY_PATH)) {
+			if(vObj instanceof EnvironmentOperation)
+				envvarEditor.add(k, (EnvironmentOperation)vObj);
+			else
+				envvarEditor.addPathEditorWithModifier(k, vObj.toString());
+		} else {
+			Class<? extends EnvironmentOperation> defaultOpClazz = null;		// OpSet.class
+			if(!first)
+				defaultOpClazz = OpAppend.class;
+
+			if(vObj instanceof EnvironmentOperation)
+				envvarEditor.add(k, (EnvironmentOperation)vObj);
+			else
+				envvarEditor.addWithModifier(k, vObj.toString(), defaultOpClazz);
+		}
+	}
+
+	/**
+	 * The value in the map is expected to only be String or String[].
+	 * @param envvarMap
+	 */
+	public void setEnvvarMap(Map<String, Object> envvarMap) {
 		if(envvarMap != null && envvarMap.size() > 0) {
-			for(Map.Entry<String,String> e : envvarMap.entrySet()) {
+			for(Map.Entry<String,Object> e : envvarMap.entrySet()) {
 				String k = e.getKey();
-				String v = e.getValue();
-				if(k.equals(K_PATH) || k.equals(K_LD_LIBRARY_PATH) || k.equals(K_DYLD_LIBRARY_PATH))
-					envvarEditor.add(k, new OpPathAppend(v));
-				else
-					envvarEditor.add(k, new OpSet(v));
+				Object v = e.getValue();
+				if(v.getClass().isArray()) {
+					Object[] vArray = (Object[]) v;
+					boolean first = true;
+					for(Object vObj : vArray) {
+						addOneRule(k, vObj, first);
+						first = false;
+					}
+				} else {
+					addOneRule(k, v, true);
+				}
 			}
 		}
 	}

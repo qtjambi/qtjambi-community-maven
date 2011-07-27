@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -74,9 +76,7 @@ public abstract class Utils {
 
 	public static String[] stringArrayAppend(String[] valueA, String str) {
 		final int srcLength = valueA.length;
-		String[] newValueA = new String[srcLength + 1];
-		System.arraycopy(valueA, 0, newValueA, 0, srcLength);
-		newValueA[srcLength] = str;
+		String[] newValueA = Arrays.copyOf(valueA, srcLength + 1);
 		return newValueA;
 	}
 
@@ -371,6 +371,34 @@ public abstract class Utils {
 			sb.append(o.toString());
 		}
 		sb.append("]");
+		return sb.toString();
+	}
+
+	public static String debugStringMapPretty(Map map) {
+		if(map == null)
+			return "null";
+		StringBuffer sb = new StringBuffer();
+		sb.append("{");
+		boolean first = true;
+		for(Map.Entry entry : ((Map<Object,Object>)map).entrySet()) {
+			if(first)
+				first = false;
+			else
+				sb.append(", ");
+
+			Object key = entry.getKey();
+			String keyString = "null";
+			if(key != null)
+				keyString = key.toString();
+
+			Object value = entry.getValue();
+			String valueString = "null";
+			if(value != null)
+				valueString = value.toString();
+
+			sb.append(keyString + " => " + valueString);
+		}
+		sb.append("}");
 		return sb.toString();
 	}
 

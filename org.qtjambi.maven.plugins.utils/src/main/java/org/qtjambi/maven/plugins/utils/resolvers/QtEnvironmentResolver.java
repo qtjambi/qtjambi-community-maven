@@ -2,7 +2,6 @@ package org.qtjambi.maven.plugins.utils.resolvers;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.qtjambi.maven.plugins.utils.IEnvironmentResolver;
