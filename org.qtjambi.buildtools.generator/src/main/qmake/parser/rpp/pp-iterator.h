@@ -92,25 +92,20 @@ namespace rpp {
                 if (_M_result.capacity() < need)
                     _M_result.reserve(need);
 
-                _M_result.append(__v._M_result);
-                // _M_result = __v._M_result;
+                _M_result = __v._M_result;
 
                 return *this;
             }
-#endif
-#if 1
+#else
             inline pp_output_iterator &operator=(const std::string &__v) {
                 const size_t need = _M_result.size() + __v.size();
                 if (_M_result.capacity() < need)
                     _M_result.reserve(need);
 
-                _M_result.append(__v);
-                // _M_result = __v;
+                _M_result = __v;
 
                 return *this;
             }
-#endif
-#if 1
             inline operator const std::string() {
                 const std::string c = std::string(_M_result);    // forces a copy
                 return c;
