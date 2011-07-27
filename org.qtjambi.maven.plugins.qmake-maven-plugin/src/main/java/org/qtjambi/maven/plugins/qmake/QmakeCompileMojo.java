@@ -5,13 +5,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.qtjambi.maven.plugins.utils.Context;
 import org.qtjambi.maven.plugins.utils.Platform;
 import org.qtjambi.maven.plugins.utils.Project;
+import org.qtjambi.maven.plugins.utils.envvar.OpPathCorrectSeparator;
+import org.qtjambi.maven.plugins.utils.envvar.OpSetIfUnset;
 import org.qtjambi.maven.plugins.utils.internal.Arguments;
 import org.qtjambi.maven.plugins.utils.shared.MojoExceptionHelper;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
@@ -19,7 +20,7 @@ import org.qtjambi.maven.plugins.utils.shared.Utils;
 /**
  * 
  * @goal compile
- * @execute lifecycle="qmake-lifecycle" phase="compile"
+ * @Xexecute lifecycle="qmake-lifecycle" phase="compile"
  * @requiresProject
  * @author <a href="mailto:darryl.miles@darrylmiles.org">Darryl L. Miles</a>
  *
@@ -90,6 +91,25 @@ public class QmakeCompileMojo extends AbstractQmakeMojo {
 	private String qmakeVersion;
 	// FIXME: Provide goal to test/check for mismatch.
 
+	/**
+	 * @parameter expression="${qmake.envvar.export.JAVA_HOME}" default-value="false"
+	 */
+	private boolean exportJavaHome;
+
+	/**
+	 * @parameter expression="${qmake.envvar.export.JAVA_HOME_TARGET}" default-value="false"
+	 */
+	private boolean exportJavaHomeTarget;
+
+	/**
+	 * This parameter will auto-correct PATH environment variables that have the
+	 * wrong directory delimiter.  Some toolchains (such as MSVC) will simply
+	 * error if those paths are using Unix slash delimiter when left as-is.
+	 * @parameter expression="${qmake.envvar.fixupPath}" default-value="false"
+	 */
+	private boolean envvarFixupPath;
+
+
 	private Context context;
 
 
@@ -106,6 +126,48 @@ public class QmakeCompileMojo extends AbstractQmakeMojo {
 			platform.detect(getLog());
 			Arguments arguments = new Arguments();
 			arguments.detect(platform, getLog());
+			boolean needSetupResolvers = false;
+			if(environmentVariables != null) {
+				for(Map.Entry entry : environmentVariables.entrySet()) {
+					Object key = entry.getKey();
+					String keyString = null;
+					if(key != null)
+						keyString = key.toString();
+
+					Object value = entry.getValue();
+					String valueString = null;
+					if(value != null)
+						valueString = value.toString();
+
+					if(keyString != null) {
+						if(keyString.equals("PATH"))
+							arguments.getPathAppend().add(valueString);
+						else
+							arguments.getEnvvarGlobal().put(keyString, valueString);
+						needSetupResolvers = true;
+					}
+				}
+			}
+			if(exportJavaHome) {
+				String javaHome = arguments.getJavaHome();
+				if(javaHome != null) {
+					arguments.getEnvvarGlobal().put("JAVA_HOME", new OpSetIfUnset(javaHome));
+					needSetupResolvers = true;
+				}
+			}
+			if(exportJavaHomeTarget) {
+				String javaHomeTarget = arguments.resolveJavaHomeTarget();
+				if(javaHomeTarget != null) {
+					arguments.getEnvvarGlobal().put("JAVA_HOME_TARGET", new OpSetIfUnset(javaHomeTarget));
+					needSetupResolvers = true;
+				}
+			}
+			if(envvarFixupPath) {
+				arguments.getEnvvarGlobal().put("PATH", new OpPathCorrectSeparator());
+				needSetupResolvers = true;
+			}
+			if(needSetupResolvers)
+				arguments.setupResolvers(platform);
 			context = new Context(platform, arguments, getLog());
 		}
 		if(debug && debugLevel == null)
@@ -120,6 +182,8 @@ public class QmakeCompileMojo extends AbstractQmakeMojo {
 			getLog().debug("includes[" + includes.size() + "] = " + Utils.debugStringArrayPretty(includes.toArray()));
 			getLog().debug("excludes[" + excludes.size() + "] = " + Utils.debugStringArrayPretty(excludes.toArray()));
 			getLog().debug("found[" + fileA.length + "] = " + Utils.debugStringArrayPretty(fileA));
+			if(environmentVariables != null && !environmentVariables.isEmpty())
+				getLog().debug("environmentVariables[" + environmentVariables.size() + "] = " + Utils.debugStringMapPretty(environmentVariables));
 		}
 
 		//if(fileA.length == 1) {
@@ -150,6 +214,7 @@ public class QmakeCompileMojo extends AbstractQmakeMojo {
 		Project project = null;
 		try {
 			project = new Project(context);
+			
 			project.setSourceDir(sourceDirectory, false);
 			project.setTargetDir(buildDirectory, false);
 			if(debugLevel != null)

@@ -19,7 +19,7 @@ import org.qtjambi.maven.plugins.utils.shared.Utils;
 /**
  * 
  * @goal initialize
- * @execute lifecycle="qmake-lifecycle" phase="initialize"
+ * @Xexecute lifecycle="qmake-lifecycle" phase="initialize"
  * @author <a href="mailto:darryl.miles@darrylmiles.org">Darryl L. Miles</a>
  *
  */

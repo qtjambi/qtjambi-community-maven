@@ -9,7 +9,7 @@ import org.apache.maven.plugin.MojoFailureException;
  * 
  * @goal testCompile
  * @requiresProject
- * @execute lifecycle="qmake-lifecycle" phase="test-compile"
+ * @Xexecute lifecycle="qmake-lifecycle" phase="test-compile"
  * @author <a href="mailto:darryl.miles@darrylmiles.org">Darryl L. Miles</a>
  *
  */

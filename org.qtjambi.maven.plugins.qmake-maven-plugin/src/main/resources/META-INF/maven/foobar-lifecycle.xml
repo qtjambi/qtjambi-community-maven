@@ -1,4 +1,4 @@
-<lifecycles>
+<lifecyclesX>
 	<lifecycle>
 		<id>qmake-lifecycle</id>
 		<phases>
@@ -54,4 +54,4 @@
 			</phase>
 		</phases>
 	</lifecycle>
-</lifecycles>
+</lifecyclesX>
