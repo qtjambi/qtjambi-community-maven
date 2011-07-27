@@ -3,8 +3,6 @@ package org.qtjambi.maven.plugins.generator;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -21,6 +19,11 @@ import org.qtjambi.maven.plugins.utils.shared.Utils;
  *
  */
 public class GenerateSourcesMojo extends AbstractMojo {
+	/**
+	 * @parameter expression="${generator.skip}" default-value="false"
+	 */
+	private boolean skip;
+
 	/**
 	 * @parameter expression="${generator.masterheaderinclude}" default-value="${basedir}/src/main/generator/masterinclude.h"
 	 */
@@ -67,6 +70,35 @@ public class GenerateSourcesMojo extends AbstractMojo {
 	private File generatorCurrentWorkingDirectory;
 
 	/**
+	 * This parameter will enable the appending of JAVA_HOME_TARGET (or JAVA_HOME)
+	 * include directory and the platform specific directory to the paths.
+	 * @parameter expression="${generator.includePaths.appendJavaInclude}" default-value="auto"
+	 */
+	private String includePathsAppendJavaInclude;
+
+	/**
+	 * This parameter will enable the appending of compiler related
+	 * include directory.
+	 * @parameter expression="${generator.includePaths.appendCompilerInclude}" default-value="auto"
+	 */
+	private String includePathsAppendCompilerInclude;
+
+	/**
+	 * @parameter expression="${generator.java.home}"
+	 */
+	private String paramJavaHome;
+
+	/**
+	 * @parameter expression="${generator.java.home.target}"
+	 */
+	private String paramJavaHomeTarget;
+
+	/**
+	 * @parameter expression="${generator.java.osarch.target}"
+	 */
+	private String paramJavaOsarchTarget;
+
+	/**
 	 * @parameter expression="${project}"
 	 * @required
 	 * @readonly
@@ -106,7 +138,18 @@ public class GenerateSourcesMojo extends AbstractMojo {
 		getLog().debug("qtIncludeDirectory=" + qtIncludeDirectory);
 		getLog().debug("kdePhononDirectory=" + kdePhononDirectory);
 		getLog().debug("generatorArguments=" + Utils.debugStringArrayPretty(generatorArguments));
+		getLog().debug("includePaths=" + Utils.debugStringArrayPretty(includePaths));
 		getLog().debug("generatorCurrentWorkingDirectory=" + generatorCurrentWorkingDirectory);
+		getLog().debug("includePathsAppendJavaInclude=" + includePathsAppendJavaInclude);
+		getLog().debug("includePathsAppendCompilerInclude=" + includePathsAppendCompilerInclude);
+		getLog().debug("paramJavaHome=" + paramJavaHome);
+		getLog().debug("paramJavaHomeTarget=" + paramJavaHomeTarget);
+		getLog().debug("paramJavaOsarchTarget=" + paramJavaOsarchTarget);
+
+		if(skip) {
+			getLog().info("skipping generator; generator.skip=" + skip);
+			return;
+		}
 
 		if(masterHeaderInclude == null || masterHeaderInclude.exists() == false) {
 			throw new MojoFailureException("generator.masterheaderinclude does not exist: " + masterHeaderInclude);
@@ -180,8 +223,67 @@ public class GenerateSourcesMojo extends AbstractMojo {
 		//List<String> includePathList  = new ArrayList<String>();
 		//String[] includePathA = includePathList.toArray(new String[includePathList.size()]);
 		String includePath = null;
-		if(includePaths != null && includePaths.length > 0)
-			includePath = Utils.stringConcat(includePaths, File.pathSeparator);
+		String[] includePathsA = includePaths;
+		if(includePaths != null && includePaths.length > 0) {
+			if(includePathsAppendJavaInclude != null) {	// FIXME quiet/verbose/disable/auto
+				boolean verbose = true;
+				boolean allAll = true;
+
+				String javaHomeTarget = paramJavaHomeTarget;		// FIXME get it from Initialize
+				if(javaHomeTarget == null)
+					javaHomeTarget = paramJavaHome;
+
+				File includeDir = new File(javaHomeTarget, "include");
+				if(includeDir.exists() && includeDir.isDirectory()) {
+					// Add $JAVA_HOME/include
+					String path = includeDir.getAbsolutePath();
+					if(verbose)
+						getLog().info("Adding includePath entry: " + path);
+					if(Utils.stringArrayContains(includePathsA, path) == false)
+						includePathsA = Utils.safeStringArrayAppend(includePathsA, path); 
+				}
+
+				String javaOsarchTarget = "win32";		// FIXME get it from Initialize
+				if(javaOsarchTarget != null) {
+					File includeOsArchDir = new File(includeDir, javaOsarchTarget);
+					if(includeOsArchDir.exists()) {
+						String path = includeOsArchDir.getAbsolutePath();
+						if(verbose)
+							getLog().info("Adding includePath entry: " + path);
+						if(Utils.stringArrayContains(includePathsA, path) == false)
+							includePathsA = Utils.safeStringArrayAppend(includePathsA, path);
+					}
+				}
+
+				List<File> foundList = new ArrayList<File>();
+				int foundCount = 0;
+				if(includeDir.exists()) {
+					File[] listFiles = includeDir.listFiles();
+					for(File f : listFiles) {
+						if(f.exists() && f.isDirectory()) {
+							foundCount++;
+							foundList.add(f);
+						}
+					}
+				}
+				if(allAll) {
+					for(File f : foundList) {
+						// Detect subdir
+						// Add $JAVA_HOME/include/win32
+						String path = f.getAbsolutePath();
+						if(verbose)
+							getLog().info("Adding includePath entry: " + path);
+						if(Utils.stringArrayContains(includePathsA, path) == false)
+							includePathsA = Utils.safeStringArrayAppend(includePathsA, path);
+					}
+				}
+			}
+			if(includePathsAppendCompilerInclude != null) {	// FIXME
+				String s = "";
+				getLog().info("Adding includePath entry: " + s);
+			}
+			includePath = Utils.stringConcat(includePathsA, File.pathSeparator);
+		}
 		if(includePath != null)
 			argList.add("--include-paths=" + includePath);
 
