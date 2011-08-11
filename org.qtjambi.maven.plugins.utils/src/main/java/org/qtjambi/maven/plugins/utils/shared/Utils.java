@@ -77,6 +77,7 @@ public abstract class Utils {
 	public static String[] stringArrayAppend(String[] valueA, String str) {
 		final int srcLength = valueA.length;
 		String[] newValueA = Arrays.copyOf(valueA, srcLength + 1);
+		newValueA[srcLength] = str;
 		return newValueA;
 	}
 
