@@ -11,6 +11,8 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.qtjambi.maven.plugins.jxe.JxeExecParam;
 import org.qtjambi.maven.plugins.jxe.JxeUtil;
+import org.qtjambi.maven.plugins.utils.Platform;
+import org.qtjambi.maven.plugins.utils.internal.Arguments;
 import org.qtjambi.maven.plugins.utils.shared.Utils;
 
 /**
@@ -48,6 +50,10 @@ public class GenerateSourcesMojo extends AbstractMojo {
 	 * @parameter default-value="${project.build.directory}/generator"
 	 */
 	private File outputDirectory;
+	/**
+	 * @parameter expression="${generator.outputPreprocessFile}"
+	 */
+	private File outputPreprocessFile;
 	/**
 	 * @parameter expression="${qt.include.directory}" default-value="${qtsdk.home}/include"
 	 */
@@ -219,6 +225,16 @@ public class GenerateSourcesMojo extends AbstractMojo {
 			argList.add("--cpp-output-directory=" + cppOutputDirectory.getAbsolutePath());
 		if(javaOutputDirectory != null)
 			argList.add("--java-output-directory=" + javaOutputDirectory.getAbsolutePath());
+		if(outputPreprocessFile != null)
+			argList.add("--output-preprocess-file=" + outputPreprocessFile.getAbsolutePath());
+
+
+		Platform platform = new Platform();
+		platform.detect(getLog());
+		Arguments arguments = new Arguments();
+		arguments.detect(platform, getLog());
+		boolean needSetupResolvers = false;
+
 
 		//List<String> includePathList  = new ArrayList<String>();
 		//String[] includePathA = includePathList.toArray(new String[includePathList.size()]);
@@ -229,7 +245,7 @@ public class GenerateSourcesMojo extends AbstractMojo {
 				boolean verbose = true;
 				boolean allAll = true;
 
-				String javaHomeTarget = paramJavaHomeTarget;		// FIXME get it from Initialize
+				String javaHomeTarget = arguments.resolveJavaHomeTarget("jdk");		// FIXME get it from Initialize
 				if(javaHomeTarget == null)
 					javaHomeTarget = paramJavaHome;
 
@@ -243,8 +259,8 @@ public class GenerateSourcesMojo extends AbstractMojo {
 						includePathsA = Utils.safeStringArrayAppend(includePathsA, path); 
 				}
 
-				String javaOsarchTarget = "win32";		// FIXME get it from Initialize
-				if(javaOsarchTarget != null) {
+				String javaOsarchTarget = arguments.getJavaOsarchTarget();		// FIXME get it from Initialize
+				if(javaOsarchTarget != null) {		// auto-detect here, move this to shared init code
 					File includeOsArchDir = new File(includeDir, javaOsarchTarget);
 					if(includeOsArchDir.exists()) {
 						String path = includeOsArchDir.getAbsolutePath();
@@ -253,34 +269,34 @@ public class GenerateSourcesMojo extends AbstractMojo {
 						if(Utils.stringArrayContains(includePathsA, path) == false)
 							includePathsA = Utils.safeStringArrayAppend(includePathsA, path);
 					}
-				}
-
-				List<File> foundList = new ArrayList<File>();
-				int foundCount = 0;
-				if(includeDir.exists()) {
-					File[] listFiles = includeDir.listFiles();
-					for(File f : listFiles) {
-						if(f.exists() && f.isDirectory()) {
-							foundCount++;
-							foundList.add(f);
+				} else {
+					List<File> foundList = new ArrayList<File>();
+					int foundCount = 0;
+					if(includeDir.exists()) {
+						File[] listFiles = includeDir.listFiles();
+						for(File f : listFiles) {
+							if(f.exists() && f.isDirectory()) {
+								foundCount++;
+								foundList.add(f);
+							}
 						}
 					}
-				}
-				if(allAll) {
-					for(File f : foundList) {
-						// Detect subdir
-						// Add $JAVA_HOME/include/win32
-						String path = f.getAbsolutePath();
-						if(verbose)
-							getLog().info("Adding includePath entry: " + path);
-						if(Utils.stringArrayContains(includePathsA, path) == false)
-							includePathsA = Utils.safeStringArrayAppend(includePathsA, path);
+					if(allAll) {
+						for(File f : foundList) {
+							// Detect subdir
+							// Add $JAVA_HOME/include/win32
+							String path = f.getAbsolutePath();
+							if(verbose)
+								getLog().info("Adding includePath entry: " + path);
+							if(Utils.stringArrayContains(includePathsA, path) == false)
+								includePathsA = Utils.safeStringArrayAppend(includePathsA, path);
+						}
 					}
 				}
 			}
 			if(includePathsAppendCompilerInclude != null) {	// FIXME
-				String s = "";
-				getLog().info("Adding includePath entry: " + s);
+				//String s = "";
+				//getLog().info("Adding includePath entry: " + s);
 			}
 			includePath = Utils.stringConcat(includePathsA, File.pathSeparator);
 		}
