@@ -1,11 +1,11 @@
 
 Last Sync:
-	commit 65da77017c6f33c1dcdd50435118371f37e0e6da
-	Merge: 3d93ed4 d69db28
+	commit 1bcb2c624ccb5c45425aa6af1ffe39dd17427950
 	Author: Samu Voutilainen <smar@smar.fi>
-	Date:   Tue Jul 19 13:57:54 2011 +0300
+	Date:   Wed Aug 10 23:49:06 2011 +0300
 
-	    Merge commit 'refs/merge-requests/70' of git://gitorious.org/qt-jambi/qtjambi-community
+	    remove extra addition from exception message text so that message text
+	    has correct values
 
 
 Steps:
@@ -36,6 +36,11 @@ Rebase history:
 	Author: Darryl L. Miles <darryl.miles@darrylmiles.org>
 	Date:   Thu Jun 16 13:54:00 2011 +0100
 
+	commit 65da77017c6f33c1dcdd50435118371f37e0e6da
+	Merge: 3d93ed4 d69db28
+	Author: Samu Voutilainen <smar@smar.fi>
+	Date:   Tue Jul 19 13:57:54 2011 +0300
+
 31-Apr-2011
 	faeedf3..050a8f7  master     -> origin/master
 	# rebase/20110531_1generator.patch
@@ -60,3 +65,8 @@ Rebase history:
 	c2e8510..65da770  master     -> origin/master
 	# rebase/20110719_1generator.patch
 	cd src/main/qmake/ && patch -p2 < ../../../../rebase/20110719_1generator.patch
+
+11-Aug-2011
+	65da770..1bcb2c6  master     -> origin/master
+	# rebase/20110811_3generator.patch
+	cd src/main/qmake/ && patch -p2 < ../../../../rebase/20110811_3generator.patch
