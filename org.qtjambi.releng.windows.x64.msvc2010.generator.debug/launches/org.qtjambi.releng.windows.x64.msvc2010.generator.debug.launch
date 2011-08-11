@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.maven.ide.eclipse.Maven2LaunchConfigurationType">
-<booleanAttribute key="M2_DEBUG_OUTPUT" value="true"/>
+<booleanAttribute key="M2_DEBUG_OUTPUT" value="false"/>
 <stringAttribute key="M2_GOALS" value="clean deploy"/>
 <booleanAttribute key="M2_NON_RECURSIVE" value="false"/>
 <booleanAttribute key="M2_OFFLINE" value="false"/>
 <stringAttribute key="M2_PROFILES" value="windows-x64-msvc2010 debug"/>
 <listAttribute key="M2_PROPERTIES">
 <listEntry value="msvc.home=C:\Program Files (x86)\Microsoft Visual Studio 10.0"/>
-<listEntry value="qtsdk.home=F:\qt_v4.7.2.20110221T150816Z_win64_msvc2010_debug"/>
-<listEntry value="jdk.home=C:\Program Files\Java\jdk1.6.0_24"/>
-<listEntry value="jre.home=C:\Program Files\Java\jdk1.6.0_24\jre"/>
+<listEntry value="qtsdk.home=F:\qt_git4.7_4.7.4.20110728T133114Z_win64_msvc2010_debug"/>
+<listEntry value="jdk.home=C:\Program Files\Java\jdk1.6.0_26"/>
+<listEntry value="jre.home=C:\Program Files\Java\jdk1.6.0_26\jre"/>
 <listEntry value="toolchain=msvc.x64"/>
 <listEntry value="qmake.make.target=debug"/>
 </listAttribute>

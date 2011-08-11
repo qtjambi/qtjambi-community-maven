@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.maven.ide.eclipse.Maven2LaunchConfigurationType">
-<booleanAttribute key="M2_DEBUG_OUTPUT" value="false"/>
+<booleanAttribute key="M2_DEBUG_OUTPUT" value="true"/>
 <stringAttribute key="M2_GOALS" value="clean package install"/>
 <booleanAttribute key="M2_NON_RECURSIVE" value="false"/>
 <booleanAttribute key="M2_OFFLINE" value="false"/>
 <stringAttribute key="M2_PROFILES" value=""/>
 <listAttribute key="M2_PROPERTIES">
 <listEntry value="qtsdk.home=F:\qt_v4.7.2.20110417T071756Z_win32_mingw_release"/>
-<listEntry value="jdk.home=C:\Program Files\Java\jdk1.6.0_24"/>
-<listEntry value="jre.home=C:\Program Files\Java\jdk1.6.0_24\jre"/>
+<listEntry value="Xjdk.home=C:\Program Files\Java\jdk1.6.0_26"/>
+<listEntry value="Xjre.home=C:\Program Files\Java\jdk1.6.0_26\jre"/>
 <listEntry value="mingw.home=C:\MinGW"/>
 <listEntry value="mingw_w64.home=C:\mingw-w64-bin_i686-mingw_20110420"/>
 <listEntry value="msvc.home=C:\Program Files (x86)\Microsoft Visual Studio 10.0"/>
 <listEntry value="Xcross_compile=x86_64-w64-mingw32-"/>
-<listEntry value="envvar.global.:TEST=foo"/>
 <listEntry value="path.append=-C:\Program Files (x86)\Common Files\Symbian\Tools"/>
 <listEntry value="toolchain=mingw"/>
 <listEntry value="Yqtsdk.home=F:\qt_v4.7.2.20110417T071756Z_win32_msvc2010_release"/>
+<listEntry value="java.home.target=C:\Program Files (x86)\Java\jdk1.6.0_26"/>
 </listAttribute>
 <stringAttribute key="M2_RUNTIME" value="EMBEDDED"/>
 <booleanAttribute key="M2_SKIP_TESTS" value="false"/>

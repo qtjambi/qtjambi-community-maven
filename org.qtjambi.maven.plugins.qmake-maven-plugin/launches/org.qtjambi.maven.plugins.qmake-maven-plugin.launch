@@ -7,8 +7,8 @@
 <stringAttribute key="M2_PROFILES" value=""/>
 <listAttribute key="M2_PROPERTIES">
 <listEntry value="qtsdk.home=F:\qt_v4.7.2.20110417T071756Z_win32_mingw_release"/>
-<listEntry value="jdk.home=C:\Program Files\Java\jdk1.6.0_24"/>
-<listEntry value="jre.home=C:\Program Files\Java\jdk1.6.0_24\jre"/>
+<listEntry value="jdk.home=C:\Program Files\Java\jdk1.6.0_26"/>
+<listEntry value="jre.home=C:\Program Files\Java\jdk1.6.0_26\jre"/>
 <listEntry value="mingw.home=C:\MinGW"/>
 <listEntry value="mingw_w64.home=C:\mingw-w64-bin_i686-mingw_20110420"/>
 <listEntry value="msvc.home=C:\Program Files (x86)\Microsoft Visual Studio 10.0"/>

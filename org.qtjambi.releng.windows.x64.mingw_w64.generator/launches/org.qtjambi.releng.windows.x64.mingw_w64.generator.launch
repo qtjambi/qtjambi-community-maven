@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.maven.ide.eclipse.Maven2LaunchConfigurationType">
-<booleanAttribute key="M2_DEBUG_OUTPUT" value="true"/>
+<booleanAttribute key="M2_DEBUG_OUTPUT" value="false"/>
 <stringAttribute key="M2_GOALS" value="clean deploy"/>
 <booleanAttribute key="M2_NON_RECURSIVE" value="false"/>
 <booleanAttribute key="M2_OFFLINE" value="false"/>
 <stringAttribute key="M2_PROFILES" value="windows-x64-mingw_w64"/>
 <listAttribute key="M2_PROPERTIES">
-<listEntry value="qtsdk.home=F:\qt_v4.7.2.20110417T071756Z_win64_mingw64_release"/>
-<listEntry value="jdk.home=C:\Program Files\Java\jdk1.6.0_24"/>
-<listEntry value="jre.home=C:\Program Files\Java\jdk1.6.0_24\jre"/>
+<listEntry value="qtsdk.home=F:\qt_git4.7_4.7.4.20110728T133114Z_win64_mingw64_release"/>
+<listEntry value="jdk.home=C:\Program Files\Java\jdk1.6.0_26"/>
+<listEntry value="jre.home=C:\Program Files\Java\jdk1.6.0_26\jre"/>
 <listEntry value="mingw_w64.home=C:\mingw-w64-bin_i686-mingw_20110420"/>
 <listEntry value="cross_compile=x86_64-w64-mingw32-"/>
 <listEntry value="toolchain=mingw_w64"/>
