@@ -229,9 +229,6 @@ namespace rpp {
                     } else if (*first == '\n') {
                         // ### compress the line
                         *result++ = *first++;
-//                        *result = (const char &)*first;
-//                        result++;
-//                        first++;	// Do as separate expression, MSVC2010
                         ++env.current_line;
                     } else if (skipping()) {
                         first = skip(first, last);

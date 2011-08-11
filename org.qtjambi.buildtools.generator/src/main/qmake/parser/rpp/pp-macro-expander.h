@@ -337,9 +337,6 @@ namespace rpp {
                         generated_lines += expand_macro.lines;
                     } else
                         *result++ = *first++;
-//                        *result = (const char &)*first;
-//                        result++;
-//                        first++;	// Do as separate expression, MSVC2010
                 }
 
                 return first;
