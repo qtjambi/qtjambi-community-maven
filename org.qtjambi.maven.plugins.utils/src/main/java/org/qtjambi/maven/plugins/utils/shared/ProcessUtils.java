@@ -103,6 +103,14 @@ public class ProcessUtils {
 			}
 		}
 
+		String linePrefix = processBuilder.getCommandExe();
+		if(linePrefix != null) {	// It is too long to have full path
+			String separator = File.separator;
+			int idx;
+			if((idx = linePrefix.lastIndexOf(separator)) >= 0)
+				linePrefix = linePrefix.substring(idx + 1);
+		}
+
 		OutputStream stdinStream = null;
 		InputStream stdoutStream = null;
 		InputStream stderrStream = null;
@@ -129,7 +137,7 @@ public class ProcessUtils {
 					stderrReader.saveStream(saveStream);
 
 				StringBuilder sb = new StringBuilder();
-				sb.append(processBuilder.getCommandExe());
+				sb.append(linePrefix);
 				sb.append(" >E> ");
 				String stderrPrefix = sb.toString();
 				stderrReader.setPrefix(stderrPrefix);
@@ -144,7 +152,7 @@ public class ProcessUtils {
 					stderrReader.saveStream(saveStream);
 
 				StringBuilder sb = new StringBuilder();
-				sb.append(processBuilder.getCommandExe());
+				sb.append(linePrefix);
 				sb.append(" >>> ");
 				String stdoutPrefix = sb.toString();
 				stdoutReader.setPrefix(stdoutPrefix);
