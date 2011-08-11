@@ -1077,6 +1077,22 @@ public class Arguments {
 		return qtMakespecs;
 	}
 
+	public String resolveJavaHome(String param) {
+		String s = null;
+		if(param == null)
+			param = "any";	// if you call this method this is the default kind of lookup
+		if(param.equals("any")) {
+			s = jdkHome;
+			if(s == null)
+				s = jreHome;
+		} else if(param.equals("jdk")) {
+			s = jdkHome;
+		} else if(param.equals("jre")) {
+			s = jreHome;
+		}
+		return s;
+	}
+
 	public String getJavaHome() {
 		if(javaHomeSet) {
 			if(jdkHome != null)
@@ -1087,12 +1103,26 @@ public class Arguments {
 		return null;
 	}
 
-	public String resolveJavaHomeTarget() {
-		if(javaHomeTargetSet)
-			return javaHomeTarget;
-		if(javaHomeSet && jdkHome != null)
-			return jdkHome;
-		return null;
+	public String resolveJavaHomeTarget(String param) {
+		String s = null;
+		if(param == null)
+			param = "any";	// if you call this method this is the default kind of lookup
+		if(param.equals("any")) {
+			s = javaHomeTarget;
+			if(s == null)
+				s = jdkHome;
+			if(s == null)
+				s = jreHome;
+		} else if(param.equals("jdk")) {
+			s = javaHomeTarget;
+			if(s == null)
+				s = jdkHome;
+		} else if(param.equals("jre")) {
+			s = javaHomeTarget;
+			if(s == null)
+				s = jreHome;
+		}
+		return s;
 	}
 
 	public String getJavaOsarchTarget() {

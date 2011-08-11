@@ -12,6 +12,7 @@ import org.qtjambi.maven.plugins.utils.Context;
 import org.qtjambi.maven.plugins.utils.Platform;
 import org.qtjambi.maven.plugins.utils.Project;
 import org.qtjambi.maven.plugins.utils.envvar.OpPathCorrectSeparator;
+import org.qtjambi.maven.plugins.utils.envvar.OpPathRemoveMissing;
 import org.qtjambi.maven.plugins.utils.envvar.OpSetIfUnset;
 import org.qtjambi.maven.plugins.utils.internal.Arguments;
 import org.qtjambi.maven.plugins.utils.shared.MojoExceptionHelper;
@@ -92,14 +93,21 @@ public class QmakeCompileMojo extends AbstractQmakeMojo {
 	// FIXME: Provide goal to test/check for mismatch.
 
 	/**
-	 * @parameter expression="${qmake.envvar.export.JAVA_HOME}" default-value="false"
+	 * Valid values: jdk, jre, any (aka "true"), other values are treated as a path.
+	 * @parameter expression="${qmake.envvar.export.JAVA_HOME}"
 	 */
-	private boolean exportJavaHome;
+	private String exportJavaHome;
 
 	/**
-	 * @parameter expression="${qmake.envvar.export.JAVA_HOME_TARGET}" default-value="false"
+	 * This exists to allow for native cross-compile with Java JDK, i.e. the JDK/JRE we 
+	 * are running Maven with does not need to be the same JDK we build our qmake
+	 * applications with, this being the 'target'.
+	 * Valid values: jdk, jre, any (aka "true"), other values are treated as a path.
+	 * We might also want: quiet/noisy
+	 * We might also want: validate path is jre/jdk.  Maybe: "jdk:" prefix?
+	 * @parameter expression="${qmake.envvar.export.JAVA_HOME_TARGET}"
 	 */
-	private boolean exportJavaHomeTarget;
+	private String exportJavaHomeTarget;
 
 	/**
 	 * This parameter will auto-correct PATH environment variables that have the
@@ -148,15 +156,15 @@ public class QmakeCompileMojo extends AbstractQmakeMojo {
 					}
 				}
 			}
-			if(exportJavaHome) {
-				String javaHome = arguments.getJavaHome();
+			if(exportJavaHome != null) {
+				String javaHome = arguments.resolveJavaHome(exportJavaHome);
 				if(javaHome != null) {
 					arguments.getEnvvarGlobal().put("JAVA_HOME", new OpSetIfUnset(javaHome));
 					needSetupResolvers = true;
 				}
 			}
-			if(exportJavaHomeTarget) {
-				String javaHomeTarget = arguments.resolveJavaHomeTarget();
+			if(exportJavaHomeTarget != null) {
+				String javaHomeTarget = arguments.resolveJavaHomeTarget(exportJavaHomeTarget);
 				if(javaHomeTarget != null) {
 					arguments.getEnvvarGlobal().put("JAVA_HOME_TARGET", new OpSetIfUnset(javaHomeTarget));
 					needSetupResolvers = true;
@@ -166,6 +174,8 @@ public class QmakeCompileMojo extends AbstractQmakeMojo {
 				arguments.getEnvvarGlobal().put("PATH", new OpPathCorrectSeparator());
 				needSetupResolvers = true;
 			}
+			arguments.getEnvvarGlobal().put("PATH", new OpPathRemoveMissing());
+			needSetupResolvers = true;
 			if(needSetupResolvers)
 				arguments.setupResolvers(platform);
 			context = new Context(platform, arguments, getLog());

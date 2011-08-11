@@ -13,4 +13,5 @@ Testing:
 	We should probably work on the basis of filtering out the environment
 	 and providing options to selectively allow through things.
 	
+	Make it run "moc.exe -v" and "rcc.exe -v" for self-test.  This can show up issues with lack of full DLLs (zlib1.dll/*ssl*.dll)
 
